@@ -19,7 +19,7 @@
 <body>
 <canvas id="myCanvas" width="1200" height="900"></canvas>
 <div class="buttons">
-<input type="button" onclick="startGame()" value="Start Game">
+<input type="button" class="button" onclick="startLevel(0,3)" value="Start Game">
 </div>
 <script>
 	var canvas = document.getElementById("myCanvas")
@@ -41,11 +41,13 @@
 		brickOffsetTop = 60,
 		brickOffsetLeft = 30,
 		brickColumnCount = Math.floor(canvas.width/(brickWidth+brickPadding) - 1),
+		brickCount = 0,
 		timer = 0;
 		
 	for(c=0; c<brickColumnCount; c++) {
 		bricks[c] = [];
 		for(r=0; r<brickRowCount; r++) {
+			brickcount++;
 			var hasItem = Math.floor(Math.random() * 10);
 			bricks[c][r] = { x: 0, y: 0 , alive: 1, item: hasItem};
 		}
@@ -105,7 +107,7 @@
 	function drawBricks() {
 		for(c=0; c<brickColumnCount; c++) {
 			for(r=0; r<brickRowCount; r++) {
-				if(bricks[c][r].alive == 1){
+				if(bricks[c][r].alive === 1){
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
 					bricks[c][r].x = brickX;
@@ -129,8 +131,11 @@
 						ball.speedy = -ball.speedy;
 						brick.alive = 0;
 						score += 1;
-						if(brick.item == 1){
+						if(brick.item === 1){
 							dropBall(brick.x,brick.y);
+						}
+						if(score === brickCount){
+							stopGame(1);
 						}
 					}
 				}
@@ -263,32 +268,39 @@
 		}
 		paddleMovements();
 		if(lives < 1){
-			stopGame();
+			stopGame(0);
 		}
 		drawText();
 	}
 	
-	function startGame(){
+	function startLevel(startingScore, startingLives){
+		score = startingScore;
+		lives = startingLives;
 		removeBalls();
-		score = 0;
-		lives = 3;
 		addBall();
 		timer = setInterval(function() {draw()}, 10);
-		//timer = draw();
 	}
 	function lostLife(){
 		removeBalls();
 		lives--;
 		addBall();
 	}
-	function stopGame(){
+	function stopGame(outcome){
 		ctx.clearRect(100, 0, canvas.width, 50);
 		ctx.fillStyle = "red";
 		ctx.font = "30px Arial";
-		ctx.fillText("Game Over!", canvas.width/2, 30);
+		if(outcome === 0){
+			ctx.fillText("Game Over!", canvas.width/2, 30);
+		}
+		else{
+			ctx.fillText("You win!!", canvas.width/2, 30);
+			brickRowCount++,
+			lives++;
+		}
 		clearInterval(timer);
+		$(".button").remove();
+		$(".buttons").html('<input type="button" class="button" onclick="startLevel(score,lives)" value="Start Next Level">');
 	}
-	
 	function changeBackground(){
 		$("#myCanvas").css({"background" : getColor()})
 	}
