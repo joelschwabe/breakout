@@ -2,12 +2,13 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Joel's Breakout</title>
+    <title>Breakout 2D</title>
     <style>
     	canvas { background: #eee; display: block; margin: 0 auto; }
-		.buttons { 	width :100%,
-					text-align: center;
-					     margin: auto;
+		.buttons { 	
+					position: fixed;
+					left: 50%;
+					
 				}
 		body{
 			font-weight:bold;
@@ -156,8 +157,6 @@
 		else if(ball.y + ball.speedy > canvas.height-ball.rad) {
 			if(ball.x > paddleX && ball.x < paddleX + paddleWidth + ball.rad) {
 				if(ball.y = ball.y-paddleHeight){
-					ball.speedy += 1;
-					ball.speedx += 1;
 					ball.speedy  = -ball.speedy ;
 				}
 			}
@@ -179,7 +178,7 @@
 		ctx.fillStyle = "#000000";
 		ctx.fillText("Score: "+score, 8, 20);
 		ctx.fillText("Lives: "+lives, 8, 50);
-		ctx.fillText("Breakout 2D", (canvas.width/2)-10, 20);
+		ctx.fillText("Breakout 2D", (canvas.width/2)-60, 20);
 	}
 	
 	function getColor(){
@@ -259,8 +258,8 @@
 	}
 
 	function draw() {
-		drawText();
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		drawText();
 		drawPaddle();
 		drawBricks();
 		
@@ -291,16 +290,20 @@
 		addBall();
 	}
 	function stopGame(outcome){
-		ctx.clearRect(150, 0, canvas.width, 50);
-		ctx.fillStyle = "red";
-		ctx.font = "30px Arial";
+		ctx.clearRect(0, 0, canvas.width, 50);
 		if(outcome == 0){
-			ctx.fillText("Game Over!", canvas.width/2, 30);
+			ctx.fillStyle = "red";
+			ctx.fillText("Score: "+score, 8, 20);
+			ctx.fillText("Lives: "+lives, 8, 50);	
+			ctx.font = "30px Arial";
+			ctx.fillText("Game Over!", (canvas.width/2)-60, 30);
+			brickCount = 0;
 		}
 		else{
-			ctx.fillText("You win!!", canvas.width/2, 30);
+			ctx.fillText("You win!!", (canvas.width/2)-60, 30);
 			brickRowCount++,
 			lives++;
+			brickCount = 0;
 			$(".button").remove();
 			$(".buttons").html('<input type="button" class="button" onclick="startLevel(score,lives)" value="Start Next Level">');
 		}
