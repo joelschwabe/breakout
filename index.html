@@ -19,7 +19,15 @@
 	
 </head>
 <body>
-<img id="brick"  src="images/brick.jpg"  style="display: none;"> 
+<img id="brick0"  src="images/brick0.jpg"  style="display: none;"> 
+<img id="brick1"  src="images/brick1.jpg"  style="display: none;"> 
+<img id="brick2"  src="images/brick2.jpg"  style="display: none;"> 
+<img id="brick3"  src="images/brick3.jpg"  style="display: none;"> 
+<img id="pill0"  src="images/pill0.png"  style="display: none;"> 
+<img id="pill1"  src="images/pill1.png"  style="display: none;"> 
+<img id="pill2"  src="images/pill2.png"  style="display: none;"> 
+<img id="pill3"  src="images/pill3.png"  style="display: none;"> 
+<img id="pill4"  src="images/pill4.png"  style="display: none;"> 
 <img id="paddle"  src="images/paddle.jpg"  style="display: none;"> 
 <img id="level1"  src="images/1-1.jpg"  style="display: none;"> 
 <canvas id="myCanvas" width="1200" height="900"></canvas>
@@ -28,18 +36,15 @@
 </div>
 <script>
 	/* TO DO:
+		- Fix gotPill/pillEffect (not activating)
 		- Show ball before launch
 		- Choose ball launch angle (may require unique draw function drawAngleArrow() \|/ )
 		- Add unique levels (beyond just adding more rows eg: stars, long side columns, etc)
-		- Add unique bricks (double hitters, unbreakables, etc)
+		- Make unique bricks active(double hitters, unbreakables, etc)
 		- Hit detection on bricks (horizontal hits, edge cases)
 		- Add power-ups
-			- Paddle size up
-			- Ball speed down
-			- 1up
+			- Lazer shots?
 		- Add power-downs
-			- Paddle size decrease
-			- Ball speed up
 			- Paddle Frozen
 	*/
 	
@@ -59,7 +64,9 @@
 		balls = [],
 		bricks = [],
 		pills = [],
-		brickImg = document.getElementById("brick"),
+		pillWidth = 45;
+		pillHeight = 15;
+		effectTimers = [],
 		level1 = document.getElementById("level1"),
 		brickWidth = 75,
 		brickHeight = 25,
@@ -101,6 +108,9 @@
 		}
 	}
 	*/
+	function drawPaddle() {
+		ctx.drawImage(paddleImg, paddleX,canvas.height-paddleHeight-5,paddleWidth, paddleHeight);
+	}
 	function paddleMovements(){
 		if(rightPressed && paddleX < canvas.width-paddleWidth) {
 			paddleAccel += 1;
@@ -123,14 +133,171 @@
 		}
 	}
 	
+	function ball(xloc,yloc,ballRadius,xspeed,yspeed,shade,kind){
+		this.x = xloc;
+		this.y = yloc;
+		this.rad = ballRadius;
+		this.speedx = xspeed;
+		this.speedy = yspeed;
+		this.color = shade;
+		this.type = kind;
+	}
+	function addBall(primary,x,y){
+		var rad = 20;
+		var xloc;
+		var yloc;
+		var xspeed;
+		var yspeed;
+		var color;
+		var type;
+		if(primary){
+			xloc = canvas.width/2;
+			yloc = canvas.height - 50;
+			xspeed = Math.floor(Math.random() * 8);
+			yspeed = -7;
+			color = "red";
+			type = 0; //original ball
+		}
+		else{
+			xloc = x;
+			yloc = y;
+			xspeed = Math.floor(Math.random() * 5);
+			yspeed = 6;
+			color = getColor();
+			type = 1; //multiball
+		}
+		var newBall = new ball(xloc,yloc,rad,xspeed,yspeed,color,type);
+		balls.push(newBall);
+	}
+	function drawBall(ball) {
+			ctx.beginPath();
+			ctx.arc(ball.x, ball.y, ball.rad, 0, Math.PI*2);
+			ctx.fillStyle = ball.color;
+			ctx.fill();
+			ctx.closePath();
+	}
+	function removeBalls(){
+		balls = [];
+	}
+	
+		
+	function pill(xloc,yloc,item){
+		this.x = xloc;
+		this.y = yloc;
+		this.type = item;
+		switch(item){
+			case 0:
+				this.img =  document.getElementById("pill0");
+				break;
+			case  1:
+				this.img =  document.getElementById("pill1");
+				break;
+			case 2:
+				this.img =  document.getElementById("pill2");
+				break;
+			case 3:
+				this.img =  document.getElementById("pill3");
+				break;
+			case 4:
+				this.img =  document.getElementById("pill4");
+				break;
+			default:
+				this.img =  document.getElementById("pill0");
+				break;
+		}
+	}
+	function addPill(x,y,type){
+		var newPill = new pill(x,y,type);
+		pills.push(newPill);
+	}
+	function drawPill(pill){
+		ctx.drawImage(pill.img, pill.x,pill.y,pillWidth,pillHeight);
+		pill.y += 8;
+	}
+	function gotPill(pill,pillId){
+		if(pill.y + 8 > canvas.height-10) {
+			if(pill.x > paddleX && pill.x < paddleX + paddleWidth + pill.rad) {
+				if(pill.y = pill.y-paddleHeight){
+					pillEffect(pill.type);
+				}	
+			}
+			pills.splice(pillId,1);
+		}
+	}
+	function pillEffect(type){
+		switch(type) {
+			case 0: //all ball speed down
+				for (var i = 0; i < balls.length; i++){
+					var ball = balls[i];
+					ball.speedx -= 5;
+					ball.speedy -= 5;
+				}
+				break;
+			case 1:	//all ball speed up
+				for (var i = 0; i < balls.length; i++){
+					var ball = balls[i];
+					ball.speedx += 5;
+					ball.speedy += 5;
+				}
+				break;
+			case 2: //paddle width up
+				paddleWidth += 50;
+				break;				
+			case 3: //paddle width down
+				paddleWidth -= 50;
+				break;	
+			case 4: //life up
+				lives+=10;
+				break;
+			default:
+				break;
+		};
+	}
+	function removePills(){
+		pills = [];
+	}
+	
+	function brick( xloc, yloc , isAlive, whichItem,type){
+		this.x = xloc;
+		this.y = yloc;
+		this.alive = isAlive;
+		this.item = whichItem;
+		switch(type){
+			case 0:
+				this.img =  document.getElementById("brick0");
+				break;
+			case  1:
+				this.img =  document.getElementById("brick1");
+				break;
+			case 2:
+				this.img =  document.getElementById("brick2");
+				break;
+			default:
+				this.img =  document.getElementById("brick0");
+				break;
+		}
+	}
 	function setBricks(){	
 		for(c=0; c<brickColumnCount; c++) {
 			bricks[c] = [];
 			for(r=0; r<brickRowCount; r++) {
 				brickCount++;
-				var hasItem = Math.floor(Math.random() * 10);
-				//bricks[c][r] = { x: 0, y: 0 , alive: 1, item: hasItem};
-				bricks[c][r] = new brick(0,0,1,hasItem);
+				var hasItem = Math.floor(Math.random() * 3);
+				//var brickType = Math.floor(Math.random() * 3);
+				bricks[c][r] = new brick(0,0,1,hasItem,0);
+			}
+		}
+	}
+	function drawBricks() {
+		for(c=0; c<brickColumnCount; c++) {
+			for(r=0; r<brickRowCount; r++) {
+				if(bricks[c][r].alive == 1){
+					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
+					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+					bricks[c][r].x = brickX;
+					bricks[c][r].y = brickY;
+					ctx.drawImage(bricks[c][r].img, brickX,brickY,brickWidth,brickHeight);
+				}
 			}
 		}
 	}
@@ -144,8 +311,12 @@
 						ball.speedy = -ball.speedy;
 						brick.alive = 0;
 						score += 1;
-						if(brick.item == 1){
+						if(brick.item == 0){
 							addBall(false,brick.x,brick.y);
+						}
+						if(brick.item == 1){
+							var pillType = Math.floor(Math.random() * 5);
+							addPill(brick.x,brick.y,pillType);
 						}
 						if(score == brickCount){
 							stopGame(2);
@@ -225,57 +396,6 @@
 		return ranHex;
 	}
 	
-	function ball(xloc,yloc,ballRadius,xspeed,yspeed,shade,kind){
-		this.x = xloc;
-		this.y = yloc;
-		this.rad = ballRadius;
-		this.speedx = xspeed;
-		this.speedy = yspeed;
-		this.color = shade;
-		this.type = kind;
-	}
-	function brick( xloc, yloc , isAlive, whichItem){
-		this.x = xloc;
-		this.y = yloc;
-		this.alive = isAlive;
-		this.item = whichItem;
-	}
-	function pill(xloc,yloc,item){
-		this.x = xloc;
-		this.y = yloc;
-		this.type = item;
-	}
-	function addBall(primary,x,y){
-		var rad = 20;
-		var xloc;
-		var yloc;
-		var xspeed;
-		var yspeed;
-		var color;
-		var type;
-		if(primary){
-			xloc = canvas.width/2;
-			yloc = canvas.height - 50;
-			xspeed = Math.floor(Math.random() * 8);
-			yspeed = -7;
-			color = "red";
-			type = 0; //original ball
-		}
-		else{
-			xloc = x;
-			yloc = y;
-			xspeed = Math.floor(Math.random() * 5);
-			yspeed = 6;
-			color = getColor();
-			type = 1; //multiball
-		}
-		var newBall = new ball(xloc,yloc,rad,xspeed,yspeed,color,type);
-		balls.push(newBall);
-	}
-
-	function removeBalls(){
-		balls = [];
-	}
 	function drawBackground(){
 		ctx.drawImage(level1, 0,0,canvas.width,canvas.height);
 	}
@@ -286,32 +406,6 @@
 		ctx.fillText("Lives: "+lives, 8, 50);
 		ctx.fillText("Breakout 2D", (canvas.width/2)-60, 20);
 		ctx.fillText("Level:"+world+"-"+level, (canvas.width)-150, 20);
-	}
-	
-	function drawBall(ball) {
-			ctx.beginPath();
-			ctx.arc(ball.x, ball.y, ball.rad, 0, Math.PI*2);
-			ctx.fillStyle = ball.color;
-			ctx.fill();
-			ctx.closePath();
-	}
-	
-	function drawPaddle() {
-		ctx.drawImage(paddleImg, paddleX,canvas.height-paddleHeight-5,paddleWidth, paddleHeight);
-	}
-	
-	function drawBricks() {
-		for(c=0; c<brickColumnCount; c++) {
-			for(r=0; r<brickRowCount; r++) {
-				if(bricks[c][r].alive == 1){
-					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
-					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r].x = brickX;
-					bricks[c][r].y = brickY;
-					ctx.drawImage(brickImg, brickX,brickY,brickWidth,brickHeight);
-				}
-			}
-		}
 	}
 	
 	function draw(active) {
@@ -328,6 +422,11 @@
 				bounceOrMove(ball, i);
 			}
 		}
+		for (var i = 0; i < pills.length; i++){
+			var pill = pills[i];
+			drawPill(pill);
+			gotPill(pill,i);
+		}
 		paddleMovements();
 	}
 	
@@ -340,11 +439,11 @@
 			setBricks();
 		}
 		addBall(true,-1,-1);
-		timer = setInterval(function() {draw(true)}, 10);
+		timer = setInterval(function() {draw(true)}, 16);
 	}
 
 	function stopGame(outcome){
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		clearInterval(timer);
 		draw(false);
 		if(outcome == 0){
 			lives--;
@@ -369,8 +468,6 @@
 			level++;
 			$(".buttons").html('<input type="button" class="button" onclick="startGame(score,lives,2)" value="Start Next Level">');
 		}
-		clearInterval(timer);
-		
 	}
 	//First load
 	setBricks();
