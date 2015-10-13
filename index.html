@@ -19,6 +19,8 @@
 	
 </head>
 <body>
+<img id="ball0"  src="images/ball0.png"  style="display: none;"> 
+<img id="ball1"  src="images/ball1.png"  style="display: none;"> 
 <img id="brick0"  src="images/brick0.jpg"  style="display: none;"> 
 <img id="brick1"  src="images/brick1.jpg"  style="display: none;"> 
 <img id="brick2"  src="images/brick2.jpg"  style="display: none;"> 
@@ -60,7 +62,7 @@
 		accelLeft = false;
 		accelRight = false;
 		score = 0,
-		lives = 3,
+		lives = 2,
 		balls = [],
 		bricks = [],
 		pills = [],
@@ -77,7 +79,6 @@
 		brickColumnCount = Math.floor(canvas.width/(brickWidth+brickPadding) - 1),
 		brickCount = 0,
 		level = 1,
-		world = 1,
 		timer = 0;
 		
 	document.addEventListener("keydown", keyDownHandler, false);
@@ -134,9 +135,9 @@
 	}
 	
 	function ball(xloc,yloc,ballRadius,xspeed,yspeed,shade,kind){
-		this.x = xloc;
-		this.y = yloc;
 		this.rad = ballRadius;
+		this.x = xloc +ballRadius;
+		this.y = yloc + ballRadius;
 		this.speedx = xspeed;
 		this.speedy = yspeed;
 		this.color = shade;
@@ -152,29 +153,27 @@
 		var type;
 		if(primary){
 			xloc = canvas.width/2;
-			yloc = canvas.height - 50;
+			yloc = canvas.height - 100;
 			xspeed = Math.floor(Math.random() * 8);
-			yspeed = -7;
-			color = "red";
+			xspeed *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
+			yspeed = -6;
+			color = document.getElementById("ball1"),
 			type = 0; //original ball
 		}
 		else{
 			xloc = x;
 			yloc = y;
 			xspeed = Math.floor(Math.random() * 5);
+			xspeed *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
 			yspeed = 6;
-			color = getColor();
+			color = document.getElementById("ball0"),
 			type = 1; //multiball
 		}
 		var newBall = new ball(xloc,yloc,rad,xspeed,yspeed,color,type);
 		balls.push(newBall);
 	}
 	function drawBall(ball) {
-			ctx.beginPath();
-			ctx.arc(ball.x, ball.y, ball.rad, 0, Math.PI*2);
-			ctx.fillStyle = ball.color;
-			ctx.fill();
-			ctx.closePath();
+		ctx.drawImage(ball.color, ball.x,ball.y,ball.rad*2, ball.rad*2);
 	}
 	function removeBalls(){
 		balls = [];
@@ -216,7 +215,7 @@
 	}
 	function gotPill(pill,pillId){
 		if(pill.y + 8 > canvas.height-10) {
-			if(pill.x > paddleX && pill.x < paddleX + paddleWidth + pill.rad) {
+			if(pill.x > paddleX && pill.x < paddleX + paddleWidth) {
 				if(pill.y = pill.y-paddleHeight){
 					pillEffect(pill.type);
 				}	
@@ -229,15 +228,23 @@
 			case 0: //all ball speed down
 				for (var i = 0; i < balls.length; i++){
 					var ball = balls[i];
-					ball.speedx -= 5;
-					ball.speedy -= 5;
+					if(ball.speedy > 4){
+						ball.speedy -= 2;
+					}
+					if(ball.speedy < -4){
+						ball.speedy += 2;
+					}
 				}
 				break;
 			case 1:	//all ball speed up
 				for (var i = 0; i < balls.length; i++){
 					var ball = balls[i];
-					ball.speedx += 5;
-					ball.speedy += 5;
+					if(ball.speedy > 4){
+						ball.speedy += 2;
+					}
+					if(ball.speedy < -4){
+						ball.speedy -= 2;
+					}
 				}
 				break;
 			case 2: //paddle width up
@@ -247,7 +254,7 @@
 				paddleWidth -= 50;
 				break;	
 			case 4: //life up
-				lives+=10;
+				lives+=1;
 				break;
 			default:
 				break;
@@ -277,7 +284,7 @@
 				break;
 		}
 	}
-	function setBricks(){	
+	function setBricks(level){	
 		for(c=0; c<brickColumnCount; c++) {
 			bricks[c] = [];
 			for(r=0; r<brickRowCount; r++) {
@@ -307,7 +314,7 @@
 			for(r=0; r<brickRowCount; r++) {
 				var brick = bricks[c][r];
 				if(brick.alive == 1) {
-					if(ball.x-ball.rad > brick.x && ball.x < brick.x+brickWidth+ball.rad && ball.y > brick.y && ball.y  < brick.y+brickHeight) {
+					if(ball.x+ball.rad > brick.x && ball.x-ball.rad < brick.x+brickWidth && ball.y-ball.rad  < brick.y+brickHeight && ball.y+ball.rad > brick.y ) {
 						ball.speedy = -ball.speedy;
 						brick.alive = 0;
 						score += 1;
@@ -334,7 +341,7 @@
 		if(ball.y + ball.speedy < ball.rad) {
 			ball.speedy  = -ball.speedy ;
 		} 
-		else if(ball.y + ball.speedy > canvas.height-ball.rad) {
+		else if(ball.y + ball.speedy > canvas.height-ball.rad*2) {
 			if(ball.x > paddleX && ball.x < paddleX + paddleWidth + ball.rad) {
 				if(ball.y = ball.y-paddleHeight){
 					ball.speedy  = -ball.speedy ;
@@ -361,7 +368,7 @@
 		ball.x += ball.speedx;
 		ball.y += ball.speedy;
 	}
-		
+	/*	
 	function getColor(){
 		color = '#';
 		for (i = 0; i < 6; i ++){
@@ -395,7 +402,7 @@
 		};
 		return ranHex;
 	}
-	
+	*/
 	function drawBackground(){
 		ctx.drawImage(level1, 0,0,canvas.width,canvas.height);
 	}
@@ -405,7 +412,7 @@
 		ctx.fillText("Score: "+score, 8, 20);
 		ctx.fillText("Lives: "+lives, 8, 50);
 		ctx.fillText("Breakout 2D", (canvas.width/2)-60, 20);
-		ctx.fillText("Level:"+world+"-"+level, (canvas.width)-150, 20);
+		ctx.fillText("Level:"+level, (canvas.width)-150, 20);
 	}
 	
 	function draw(active) {
@@ -435,16 +442,17 @@
 		lives = startingLives;
 		$(".button").remove();
 		removeBalls();
+		removePills();
 		if(startType > 0){
-			setBricks();
+			setBricks(startType);
 		}
-		addBall(true,-1,-1);
+		addBall(true,0,0);
 		timer = setInterval(function() {draw(true)}, 16);
 	}
 
 	function stopGame(outcome){
-		clearInterval(timer);
 		draw(false);
+		clearInterval(timer);
 		if(outcome == 0){
 			lives--;
 			ctx.fillText("Score: "+score, 8, 20);
@@ -459,14 +467,16 @@
 			ctx.font = "30px Calibri";
 			ctx.fillText("Game Over!", (canvas.width/2)-60, 30);
 			brickCount = 0;
-			$(".buttons").html('<input type="button" class="button" onclick="startGame(0,3,1)" value="Start Game">');
+			score = 0;
+			level = 1;
+			lives = 3;
+			$(".buttons").html('<input type="button" class="button" onclick="startGame(score,lives,level)" value="Start Game">');
 		}
 		else{
 			ctx.fillText("Level Cleared!!", (canvas.width/2)-60, 30);
 			brickRowCount++,
-			lives++;
 			level++;
-			$(".buttons").html('<input type="button" class="button" onclick="startGame(score,lives,2)" value="Start Next Level">');
+			$(".buttons").html('<input type="button" class="button" onclick="startGame(score,lives,level)" value="Start Next Level">');
 		}
 	}
 	//First load
