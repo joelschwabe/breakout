@@ -19,6 +19,12 @@
 	
 </head>
 <body>
+<audio>
+	<source id ="ballOut" src="sounds/ballOut.mp3" type="audio/mpeg">
+	<source id ="gotPill" src="sounds/gotPill.mp3" type="audio/mpeg">
+	<source id ="hitBrick" src="sounds/hitBrick.mp3" type="audio/mpeg">
+	<source id ="hitWall" src="sounds/hitWall.mp3" type="audio/mpeg">
+</audio>
 <img id="ball0"  src="images/ball0.png"  style="display: none;"> 
 <img id="ball1"  src="images/ball1.png"  style="display: none;"> 
 <img id="brick0"  src="images/brick0.jpg"  style="display: none;"> 
@@ -70,6 +76,10 @@
 		pillHeight = 15;
 		effectTimers = [],
 		level1 = document.getElementById("level1"),
+		sound_ballOut = document.getElementById("ballOut"),
+		sound_hitBrick = document.getElementById("hitBrick"),
+		sound_hitWall = document.getElementById("hitWall"),
+		sound_gotPill = document.getElementById("gotPill"),
 		brickWidth = 75,
 		brickHeight = 25,
 		brickRowCount = 3,
@@ -218,6 +228,7 @@
 			if(pill.x > paddleX && pill.x < paddleX + paddleWidth) {
 				if(pill.y = pill.y-paddleHeight){
 					pillEffect(pill.type);
+					sound_gotPill.play();
 				}	
 			}
 			pills.splice(pillId,1);
@@ -317,6 +328,7 @@
 					if(ball.x+ball.rad > brick.x && ball.x-ball.rad < brick.x+brickWidth && ball.y-ball.rad  < brick.y+brickHeight && ball.y+ball.rad > brick.y ) {
 						ball.speedy = -ball.speedy;
 						brick.alive = 0;
+						sound_hitBrick.play();
 						score += 1;
 						if(brick.item == 0){
 							addBall(false,brick.x,brick.y);
@@ -365,6 +377,7 @@
 				}
 			}
 		}
+		sound_hitWall.play();
 		ball.x += ball.speedx;
 		ball.y += ball.speedy;
 	}
@@ -470,6 +483,7 @@
 			score = 0;
 			level = 1;
 			lives = 3;
+			sound_ballOut.play();
 			$(".buttons").html('<input type="button" class="button" onclick="startGame(score,lives,level)" value="Start Game">');
 		}
 		else{
