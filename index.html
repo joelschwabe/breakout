@@ -10,6 +10,11 @@
 					left: 50%;
 					
 				}
+				.sounds { 	
+					position: fixed;
+					left: 60%;
+					
+				}
 		body{
 			font-weight:bold;
 			font-size:large
@@ -19,12 +24,6 @@
 	
 </head>
 <body>
-<audio>
-	<source id ="ballOut" src="sounds/ballOut.mp3" type="audio/mpeg">
-	<source id ="gotPill" src="sounds/gotPill.mp3" type="audio/mpeg">
-	<source id ="hitBrick" src="sounds/hitBrick.mp3" type="audio/mpeg">
-	<source id ="hitWall" src="sounds/hitWall.mp3" type="audio/mpeg">
-</audio>
 <img id="ball0"  src="images/ball0.png"  style="display: none;"> 
 <img id="ball1"  src="images/ball1.png"  style="display: none;"> 
 <img id="brick0"  src="images/brick0.jpg"  style="display: none;"> 
@@ -37,18 +36,24 @@
 <img id="pill3"  src="images/pill3.png"  style="display: none;"> 
 <img id="pill4"  src="images/pill4.png"  style="display: none;"> 
 <img id="paddle"  src="images/paddle.jpg"  style="display: none;"> 
-<img id="level1"  src="images/1-1.jpg"  style="display: none;"> 
-<canvas id="myCanvas" width="1200" height="900"></canvas>
+<img id="level1"  src="images/1.jpg"  style="display: none;"> 
+<img id="level2"  src="images/2.jpg"  style="display: none;"> 
+<img id="level3"  src="images/3.jpg"  style="display: none;"> 
+<canvas id="myCanvas" width="1300" height="900"></canvas>
 <div class="buttons">
-<input type="button" class="button" onclick="startGame(0,3,1)" value="Start Game">
+<input type="button" id="start" onclick="startGame(0,3,1)" value="Start Game">
+</div>
+<div class="sounds">
+<input type="button" id="muteMusic" onclick="toggleMusic()" value="Toggle Music">
+<input type="button" id="muteSFX" onclick="toggleSFX()" value="Toggle SFX">
 </div>
 <script>
 	/* TO DO:
-		- Fix gotPill/pillEffect (not activating)
 		- Show ball before launch
+		- Stop double pill drop
+		- Stop wonky ball hook on brick edges
 		- Choose ball launch angle (may require unique draw function drawAngleArrow() \|/ )
 		- Add unique levels (beyond just adding more rows eg: stars, long side columns, etc)
-		- Make unique bricks active(double hitters, unbreakables, etc)
 		- Hit detection on bricks (horizontal hits, edge cases)
 		- Add power-ups
 			- Lazer shots?
@@ -58,6 +63,7 @@
 	
 	var canvas = document.getElementById("myCanvas"),
 		ctx = canvas.getContext("2d"),
+		fps = 60,
 		paddleHeight = 15,
 		paddleWidth = 150,
 		paddleX = (canvas.width-paddleWidth)/2,
@@ -73,27 +79,40 @@
 		bricks = [],
 		pills = [],
 		pillWidth = 45;
-		pillHeight = 15;
+		pillHeight = 20;
 		effectTimers = [],
-		level1 = document.getElementById("level1"),
-		sound_ballOut = document.getElementById("ballOut"),
-		sound_hitBrick = document.getElementById("hitBrick"),
-		sound_hitWall = document.getElementById("hitWall"),
-		sound_gotPill = document.getElementById("gotPill"),
+		bg_level1 = document.getElementById("level1"),
+		bg_level2 = document.getElementById("level2"),
+		bg_level3 = document.getElementById("level3"),
+		bg_playlist = [bg_level1,bg_level2,bg_level3],
+		sound_win = new Audio('sounds/win.mp3'),
+		sound_ballOut = new Audio('sounds/ballOut.mp3'),
+		sound_hitBrick = new Audio('sounds/hitBrick.mp3'),
+		sound_hitBrick2 = new Audio('sounds/hitBrick2.mp3'),
+		sound_hitBrick3 = new Audio('sounds/hitBrick3.mp3'),
+		sound_hitWall = new Audio('sounds/hitWall.mp3'),
+		sound_gotPill = new Audio('sounds/gotPill.mp3'),
+		sound_playlist = [sound_ballOut,sound_hitBrick,sound_hitBrick2,sound_hitBrick3,sound_hitWall,sound_gotPill],
+		song_background0 = new Audio('sounds/Arkanoid_1999_(2000_Mix)_OC_ReMix.mp3'),
+		song_background1 = new Audio('sounds/Arkanoid_Navel_Lint_Dub_OC_ReMix.mp3'),
+		song_background2 = new Audio('sounds/Arkanoid_Black_Block_OC_ReMix.mp3'),
+		song_playlist = [song_background0,song_background1,song_background2],
+		musicOn = true,
+		sfxOn=true,
+		current_song = 0,
 		brickWidth = 75,
-		brickHeight = 25,
+		brickHeight = 30,
 		brickRowCount = 3,
-		brickPadding = 10,
+		brickPadding = 15,
 		brickOffsetTop = 60,
 		brickOffsetLeft = 30,
-		brickColumnCount = Math.floor(canvas.width/(brickWidth+brickPadding) - 1),
+		brickColumnCount = Math.floor(canvas.width/(brickWidth+brickPadding)),
 		brickCount = 0,
 		level = 1,
 		timer = 0;
 		
 	document.addEventListener("keydown", keyDownHandler, false);
 	document.addEventListener("keyup", keyUpHandler, false);
-	//document.addEventListener("mousemove", mouseMoveHandler, false);
 	
 	function keyDownHandler(e) {
 		if(e.keyCode == 39) {
@@ -111,14 +130,7 @@
 			leftPressed = false;
 		}
 	}
-	/*
-	function mouseMoveHandler(e) {
-		var relativeX = e.clientX - canvas.offsetLeft;
-		if(relativeX > paddleWidth/2 && relativeX < canvas.width-(paddleWidth/2)) {
-			paddleX = relativeX - paddleWidth/2;
-		}
-	}
-	*/
+
 	function drawPaddle() {
 		ctx.drawImage(paddleImg, paddleX,canvas.height-paddleHeight-5,paddleWidth, paddleHeight);
 	}
@@ -144,29 +156,29 @@
 		}
 	}
 	
-	function ball(xloc,yloc,ballRadius,xspeed,yspeed,shade,kind){
-		this.rad = ballRadius;
-		this.x = xloc +ballRadius;
-		this.y = yloc + ballRadius;
+	function ball(xloc,yloc,ballradius,xspeed,yspeed,shade,kind){
+		this.radius = ballradius;
+		this.x = xloc + (ballradius/2);
+		this.y = yloc + (ballradius/2);
 		this.speedx = xspeed;
 		this.speedy = yspeed;
 		this.color = shade;
 		this.type = kind;
 	}
 	function addBall(primary,x,y){
-		var rad = 20;
-		var xloc;
-		var yloc;
-		var xspeed;
-		var yspeed;
-		var color;
-		var type;
+		var radius = 20,
+			xloc,
+			yloc,
+			xspeed,
+			yspeed,
+			color,
+			type;
 		if(primary){
 			xloc = canvas.width/2;
 			yloc = canvas.height - 100;
 			xspeed = Math.floor(Math.random() * 8);
 			xspeed *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
-			yspeed = -6;
+			yspeed = -8;
 			color = document.getElementById("ball1"),
 			type = 0; //original ball
 		}
@@ -179,16 +191,20 @@
 			color = document.getElementById("ball0"),
 			type = 1; //multiball
 		}
-		var newBall = new ball(xloc,yloc,rad,xspeed,yspeed,color,type);
+		var newBall = new ball(xloc,yloc,radius,xspeed,yspeed,color,type);
 		balls.push(newBall);
 	}
 	function drawBall(ball) {
-		ctx.drawImage(ball.color, ball.x,ball.y,ball.rad*2, ball.rad*2);
+		ctx.beginPath();
+		ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
+		ctx.fillStyle = 'white';
+		ctx.fill();
+		ctx.closePath();
+		ctx.drawImage(ball.color, ball.x-ball.radius,ball.y-ball.radius,ball.radius*2, ball.radius*2);
 	}
 	function removeBalls(){
 		balls = [];
 	}
-	
 		
 	function pill(xloc,yloc,item){
 		this.x = xloc;
@@ -275,12 +291,13 @@
 		pills = [];
 	}
 	
-	function brick( xloc, yloc , isAlive, whichItem,type){
+	function brick( xloc, yloc , isAlive, whichItem,brickType){
 		this.x = xloc;
 		this.y = yloc;
 		this.alive = isAlive;
 		this.item = whichItem;
-		switch(type){
+		this.type = brickType;
+		switch(brickType){
 			case 0:
 				this.img =  document.getElementById("brick0");
 				break;
@@ -290,31 +307,45 @@
 			case 2:
 				this.img =  document.getElementById("brick2");
 				break;
+			case 3:
+				this.img =  document.getElementById("brick3");
+				break;
 			default:
 				this.img =  document.getElementById("brick0");
 				break;
 		}
 	}
-	function setBricks(level){	
+	function setBricks(levelSet){	
 		for(c=0; c<brickColumnCount; c++) {
 			bricks[c] = [];
 			for(r=0; r<brickRowCount; r++) {
-				brickCount++;
-				var hasItem = Math.floor(Math.random() * 3);
-				//var brickType = Math.floor(Math.random() * 3);
-				bricks[c][r] = new brick(0,0,1,hasItem,0);
+				var hasItem = 99;
+				var lives = 1;
+				var brickType = Math.floor(Math.random() * 4);
+				if(brickType == 0){
+					brickCount++;
+					hasItem = Math.floor(Math.random() * 12);
+				}
+				if(brickType == 1){
+					brickCount++;
+					hasItem = Math.floor(Math.random() * 4);
+				}
+				if(brickType == 2){
+					brickCount += 2;
+					lives = 2;
+				}
+				var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
+				var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+				bricks[c][r] = new brick(brickX,brickY,lives,hasItem,brickType);
 			}
 		}
 	}
 	function drawBricks() {
 		for(c=0; c<brickColumnCount; c++) {
 			for(r=0; r<brickRowCount; r++) {
-				if(bricks[c][r].alive == 1){
-					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
-					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r].x = brickX;
-					bricks[c][r].y = brickY;
-					ctx.drawImage(bricks[c][r].img, brickX,brickY,brickWidth,brickHeight);
+				var currentBrick = bricks[c][r];
+				if(currentBrick.alive > 0){
+					ctx.drawImage(currentBrick.img, currentBrick.x,currentBrick.y,brickWidth,brickHeight);
 				}
 			}
 		}
@@ -324,12 +355,21 @@
 		for(c=0; c<brickColumnCount; c++) {
 			for(r=0; r<brickRowCount; r++) {
 				var brick = bricks[c][r];
-				if(brick.alive == 1) {
-					if(ball.x+ball.rad > brick.x && ball.x-ball.rad < brick.x+brickWidth && ball.y-ball.rad  < brick.y+brickHeight && ball.y+ball.rad > brick.y ) {
-						ball.speedy = -ball.speedy;
-						brick.alive = 0;
-						sound_hitBrick.play();
-						score += 1;
+				if(brick.alive > 0) {
+					if(ball.x+ball.radius > brick.x && ball.x-ball.radius < brick.x+brickWidth && ball.y-ball.radius  < brick.y+brickHeight && ball.y+ball.radius > brick.y ) {
+						if(brick.type == 0 || brick.type == 2){
+							brick.alive--;
+							sound_hitBrick.play();
+							score += 1;
+						}
+						if(brick.type == 1){
+							brick.alive--;
+							sound_hitBrick2.play();
+							score += 1;
+						}
+						if(brick.type == 3){
+							sound_hitBrick3.play();
+						}
 						if(brick.item == 0){
 							addBall(false,brick.x,brick.y);
 						}
@@ -340,6 +380,7 @@
 						if(score == brickCount){
 							stopGame(2);
 						}
+						ball.speedy = -ball.speedy;
 					}
 				}
 			}
@@ -347,16 +388,19 @@
 	}
 	
 	function bounceOrMove(ball, whichBall){
-		if(ball.x + ball.speedx > canvas.width-ball.rad || ball.x + ball.speedx < ball.rad) {
+		if(ball.x + ball.speedx > canvas.width-ball.radius || ball.x  < ball.radius+2) {
+			sound_hitWall.play();
 			ball.speedx = -ball.speedx ;
 		}
-		if(ball.y + ball.speedy < ball.rad) {
+		if(ball.y < ball.radius) {
+			sound_hitWall.play();
 			ball.speedy  = -ball.speedy ;
 		} 
-		else if(ball.y + ball.speedy > canvas.height-ball.rad*2) {
-			if(ball.x > paddleX && ball.x < paddleX + paddleWidth + ball.rad) {
+		else if(ball.y + ball.speedy > canvas.height-ball.radius) {
+			if(ball.x > paddleX && ball.x < paddleX + paddleWidth + ball.radius) {
 				if(ball.y = ball.y-paddleHeight){
 					ball.speedy  = -ball.speedy ;
+					sound_hitWall.play();
 					if(accelLeft){
 						ball.speedx = ball.speedx - paddleAccel/2;
 					}
@@ -370,6 +414,7 @@
 					stopGame(1);
 				}
 				else if(ball.type == 0){
+					sound_ballOut.play();
 					stopGame(0);
 				}
 				else{
@@ -377,47 +422,36 @@
 				}
 			}
 		}
-		sound_hitWall.play();
 		ball.x += ball.speedx;
 		ball.y += ball.speedy;
 	}
-	/*	
-	function getColor(){
-		color = '#';
-		for (i = 0; i < 6; i ++){
-			color += randomHexVal();
-		};
-		return color;
+	
+	function toggleMusic(){
+		if(musicOn){
+			song_playlist[current_song].volume = 0;
+			musicOn = false;
+		}
+		else{
+			song_playlist[current_song].volume = 0.75;
+			musicOn = true;
+		}
 	}
-	function randomHexVal(){
-		var ranHex = Math.floor(Math.random() * 16);
-		switch(ranHex) {
-			case 10:
-				ranHex = 'a';
-				break;
-			case 11:
-				ranHex = 'b';
-				break;
-			case 12:
-				ranHex = 'c';
-				break;				
-			case 13:
-				ranHex = 'd';
-				break;	
-			case 14:
-				ranHex = 'e';
-				break;
-			case 15:
-				ranHex = 'f';
-				break;	
-			default:
-				break;
-		};
-		return ranHex;
+	function toggleSFX(){
+		if(sfxOn){
+			for(i=0; i< sound_playlist.length; i++){
+				sound_playlist[i].volume = 0;
+			}
+			sfxOn = false;
+		}
+		else{
+			for(i=0; i< sound_playlist.length; i++){
+				sound_playlist[i].volume = 1;
+			}
+			sfxOn = true;
+		}
 	}
-	*/
-	function drawBackground(){
-		ctx.drawImage(level1, 0,0,canvas.width,canvas.height);
+	function drawBackground(level){
+		ctx.drawImage(bg_playlist[level-1], 0,0,canvas.width,canvas.height);
 	}
 	function drawText() {
 		ctx.font = "20px Calibri";
@@ -430,7 +464,7 @@
 	
 	function draw(active) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		drawBackground();
+		drawBackground(level);
 		drawPaddle();
 		drawBricks();
 		for (var i = 0; i < balls.length; i++){
@@ -445,7 +479,9 @@
 		for (var i = 0; i < pills.length; i++){
 			var pill = pills[i];
 			drawPill(pill);
-			gotPill(pill,i);
+			if(active){
+				gotPill(pill,i);
+			}
 		}
 		paddleMovements();
 	}
@@ -453,16 +489,21 @@
 	function startGame(startingScore, startingLives, startType){
 		score = startingScore;
 		lives = startingLives;
-		$(".button").remove();
+		$("#start").remove();
 		removeBalls();
 		removePills();
 		if(startType > 0){
 			setBricks(startType);
 		}
 		addBall(true,0,0);
-		timer = setInterval(function() {draw(true)}, 16);
+		song_playlist[current_song].play();
+		song_playlist[current_song].volume = 0.75;
+		timer = setInterval(function() {draw(true)}, (1000/fps));
 	}
-
+	function stopSong(){
+		song_playlist[current_song].pause();
+		song_playlist[current_song].currentTime = 0;
+	}
 	function stopGame(outcome){
 		draw(false);
 		clearInterval(timer);
@@ -471,7 +512,7 @@
 			ctx.fillText("Score: "+score, 8, 20);
 			ctx.fillText("Extra Lives: "+lives, 8, 50);
 			ctx.fillText("Ball Out!", (canvas.width/2)-60, 30);
-			$(".buttons").html('<input type="button" class="button" onclick="startGame(score,lives,0)" value="Launch Ball">');
+			$(".buttons").html('<input type="button" id="start" onclick="startGame(score,lives,0)" value="Launch Ball">');
 		}
 		else if(outcome == 1){
 			ctx.fillStyle = "yellow";
@@ -483,14 +524,18 @@
 			score = 0;
 			level = 1;
 			lives = 3;
-			sound_ballOut.play();
-			$(".buttons").html('<input type="button" class="button" onclick="startGame(score,lives,level)" value="Start Game">');
+			stopSong();
+			current_song = 0;
+			$(".buttons").html('<input type="button" id="start" onclick="startGame(score,lives,level)" value="Start Game">');
 		}
 		else{
 			ctx.fillText("Level Cleared!!", (canvas.width/2)-60, 30);
 			brickRowCount++,
 			level++;
-			$(".buttons").html('<input type="button" class="button" onclick="startGame(score,lives,level)" value="Start Next Level">');
+			sound_win.play();
+			stopSong();
+			current_song++;
+			$(".buttons").html('<input type="button" id="start" onclick="startGame(score,lives,level)" value="Start Next Level">');
 		}
 	}
 	//First load
@@ -498,6 +543,10 @@
 	brickCount = 0;
 	draw(true);
 	drawText();
+	song_playlist[current_song].addEventListener('ended', function() {
+		this.currentTime = 0;
+		this.play();
+	}, false);
 </script>
 </body>
 </html>
