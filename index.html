@@ -33,6 +33,7 @@
 	<img id="pill3"  src="images/pill3.png"  style="display: none;"> 
 	<img id="pill4"  src="images/pill4.png"  style="display: none;"> 
 	<img id="paddle"  src="images/paddle.jpg"  style="display: none;"> 
+	<img id="level0"  src="images/0.jpg"  style="display: none;"> 
 	<img id="level1"  src="images/1.jpg"  style="display: none;"> 
 	<img id="level2"  src="images/2.jpg"  style="display: none;"> 
 	<img id="level3"  src="images/3.jpg"  style="display: none;">
@@ -82,10 +83,11 @@
 		pillWidth = 45;
 		pillHeight = 20;
 		effectTimers = [],
+		bg_level0 = document.getElementById("level0"),
 		bg_level1 = document.getElementById("level1"),
 		bg_level2 = document.getElementById("level2"),
 		bg_level3 = document.getElementById("level3"),
-		bg_playlist = [bg_level1,bg_level2,bg_level3],
+		bg_playlist = [bg_level0,bg_level1,bg_level2,bg_level3],
 		sound_win = new Audio('sounds/win.mp3'),
 		sound_ballOut = new Audio('sounds/ballOut.mp3'),
 		sound_hitBrick = new Audio('sounds/hitBrick.mp3'),
@@ -109,7 +111,7 @@
 		brickOffsetLeft = 15,
 		brickColumnCount = 11,
 		brickCount = 0,
-		level = 1,
+		level = 0,
 		timer = 0;
 		
 	document.addEventListener("keydown", keyDownHandler, false);
@@ -291,7 +293,7 @@
 	function removePills(){
 		pills = [];
 	}
-	
+
 	function brick( xloc, yloc , isAlive, whichItem,brickType){
 		this.x = xloc;
 		this.y = yloc;
@@ -316,32 +318,72 @@
 				break;
 		}
 	}
-	function setBricks(levelSet){	
-		for(c=0; c<brickColumnCount; c++) {
-			bricks[c] = [];
-			for(r=0; r<brickRowCount; r++) {
-				var hasItem = 99;
-				var lives = 1;
-				//var brickType = Math.floor(Math.random() * 4);
-				var brickType = 0;
-				if(brickType == 0){
+	function setBricks(levelSet){
+		if(levelSet == 1){
+			brickRowCount = 3;
+			for(c=0; c<brickColumnCount; c++) {
+				bricks[c] = [];
+				for(r=0; r<brickRowCount; r++) {
 					brickCount++;
-					hasItem = Math.floor(Math.random() * 12);
+					var hasItem = Math.floor(Math.random() * 12);
+					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
+					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+					bricks[c][r] = new brick(brickX,brickY,1,hasItem,0);
 				}
-				if(brickType == 1){
+			}
+		}
+		else if(levelSet == 2){
+			for(c=0; c<brickColumnCount; c++) {
+				bricks[c] = [];
+				for(r=0; r<brickRowCount; r++) {
 					brickCount++;
-					hasItem = Math.floor(Math.random() * 4);
+					var hasItem = Math.floor(Math.random() * 12);
+					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
+					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+					bricks[c][r] = new brick(brickX,brickY,1,hasItem,0);
 				}
-				if(brickType == 2){
-					brickCount += 2;
-					lives = 2;
+			}
+		}
+		else if(levelSet == 3){
+			for(c=0; c<brickColumnCount; c++) {
+				bricks[c] = [];
+				for(r=0; r<brickRowCount; r++) {
+					brickCount++;
+					var hasItem = Math.floor(Math.random() * 12);
+					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
+					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+					bricks[c][r] = new brick(brickX,brickY,1,hasItem,0);
 				}
-				var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
-				var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-				bricks[c][r] = new brick(brickX,brickY,lives,hasItem,brickType);
+			}
+		}
+		else{ //if called with no level or level 0
+			brickRowCount = Math.floor(canvas.height/(brickHeight+brickPadding) - 5);
+			for(c=0; c<brickColumnCount; c++) {
+				bricks[c] = [];
+				for(r=0; r<brickRowCount; r++) {
+					var hasItem = 99;
+					var lives = 1;
+					var brickType = Math.floor(Math.random() * 4);
+					if(brickType == 0){
+						brickCount++;
+						hasItem = Math.floor(Math.random() * 12);
+					}
+					if(brickType == 1){
+						brickCount++;
+						hasItem = Math.floor(Math.random() * 4);
+					}
+					if(brickType == 2){
+						brickCount += 2;
+						lives = 2;
+					}
+					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
+					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+					bricks[c][r] = new brick(brickX,brickY,lives,hasItem,brickType);
+				}
 			}
 		}
 	}
+	
 	function drawBricks() {
 		for(c=0; c<brickColumnCount; c++) {
 			for(r=0; r<brickRowCount; r++) {
@@ -432,7 +474,7 @@
 	}
 	
 	function drawBackground(level){
-		ctx.drawImage(bg_playlist[level-1], 0,0,canvas.width,canvas.height);
+		ctx.drawImage(bg_playlist[level], 0,0,canvas.width,canvas.height);
 	}
 	function drawText() {
 		ctx.font = "20px Calibri";
@@ -452,7 +494,7 @@
 		makeCanvas();
 	}
 	
-	function makeCanvas(){
+	function makeCanvas(level){
 		$("#myCanvas").remove();
 		if(fixedCanvas){
 			$("#canvasContainer").html('<canvas id="myCanvas" width="1000" height="700"></canvas>');
@@ -467,7 +509,7 @@
 		paddleX = (canvas.width-paddleWidth)/2;
 		brickRowCount = 3;
 		brickColumnCount = Math.floor(canvas.width/(brickWidth+brickPadding));
-		setBricks();
+		setBricks(level);
 		draw(true);
 		brickCount = 0;
 		drawText();
@@ -533,7 +575,7 @@
 		$("#fixedSize").remove();
 		removeBalls();
 		removePills();
-		if(startType > 0){
+		if(startType > -1){
 			setBricks(startType);
 		}
 		addBall(true,0,0);
@@ -552,7 +594,7 @@
 			ctx.fillText("Extra Lives: "+lives, 8, 50);
 			ctx.font = "30px Calibri";
 			ctx.fillText("Ball Out!", (canvas.width/2)-60, 30);
-			$(".buttons").append('<input type="button" class="startup" id="start" onclick="startGame(score,lives,0)" value="Launch Ball">');
+			$(".buttons").append('<input type="button" class="startup" id="start" onclick="startGame(score,lives,-1)" value="Launch Ball">');
 		}
 		else if(outcome == 1){
 			ctx.font = "20px Calibri";
@@ -573,8 +615,11 @@
 		}
 		else{
 			ctx.fillText("Level Cleared!!", (canvas.width/2)-60, 30);
-			brickRowCount++,
-			level++;
+			if(!fixedCanvas){
+				brickRowCount++;
+			}else{
+				level++;
+			}
 			sound_win.play();
 			stopSong();
 			current_song++;
