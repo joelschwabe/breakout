@@ -4,50 +4,49 @@
     <meta charset="utf-8" />
     <title>Breakout 2D</title>
     <style>
-    	canvas { background: #eee; display: block; margin: 0 auto; }
+    	canvas	{ background: #eee; display: block; margin: 0 auto; }
 		.buttons { 	
+					float:left;
 					position: fixed;
-					left: 50%;
-					
+					left: 30%;
+					display: inline-block;
 				}
-				.sounds { 	
-					position: fixed;
-					left: 60%;
-					
-				}
+
 		body{
 			font-weight:bold;
-			font-size:large
+			font-size:large;
+			background-color: #fff;
 			}
     </style>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-	
 </head>
 <body>
-<img id="ball0"  src="images/ball0.png"  style="display: none;"> 
-<img id="ball1"  src="images/ball1.png"  style="display: none;"> 
-<img id="brick0"  src="images/brick0.jpg"  style="display: none;"> 
-<img id="brick1"  src="images/brick1.jpg"  style="display: none;"> 
-<img id="brick2"  src="images/brick2.jpg"  style="display: none;"> 
-<img id="brick3"  src="images/brick3.jpg"  style="display: none;"> 
-<img id="pill0"  src="images/pill0.png"  style="display: none;"> 
-<img id="pill1"  src="images/pill1.png"  style="display: none;"> 
-<img id="pill2"  src="images/pill2.png"  style="display: none;"> 
-<img id="pill3"  src="images/pill3.png"  style="display: none;"> 
-<img id="pill4"  src="images/pill4.png"  style="display: none;"> 
-<img id="paddle"  src="images/paddle.jpg"  style="display: none;"> 
-<img id="level1"  src="images/1.jpg"  style="display: none;"> 
-<img id="level2"  src="images/2.jpg"  style="display: none;"> 
-<img id="level3"  src="images/3.jpg"  style="display: none;"> 
-<canvas id="myCanvas" width="1300" height="900"></canvas>
-<div class="buttons">
-<input type="button" id="start" onclick="startGame(0,3,1)" value="Start Game">
-</div>
-<div class="sounds">
-<input type="button" id="muteMusic" onclick="toggleMusic()" value="Toggle Music">
-<input type="button" id="muteSFX" onclick="toggleSFX()" value="Toggle SFX">
-</div>
-<script>
+	<img id="ball0"  src="images/ball0.png"  style="display: none;"> 
+	<img id="ball1"  src="images/ball1.png"  style="display: none;"> 
+	<img id="brick0"  src="images/brick0.jpg"  style="display: none;"> 
+	<img id="brick1"  src="images/brick1.jpg"  style="display: none;"> 
+	<img id="brick2"  src="images/brick2.jpg"  style="display: none;"> 
+	<img id="brick3"  src="images/brick3.jpg"  style="display: none;"> 
+	<img id="pill0"  src="images/pill0.png"  style="display: none;"> 
+	<img id="pill1"  src="images/pill1.png"  style="display: none;"> 
+	<img id="pill2"  src="images/pill2.png"  style="display: none;"> 
+	<img id="pill3"  src="images/pill3.png"  style="display: none;"> 
+	<img id="pill4"  src="images/pill4.png"  style="display: none;"> 
+	<img id="paddle"  src="images/paddle.jpg"  style="display: none;"> 
+	<img id="level1"  src="images/1.jpg"  style="display: none;"> 
+	<img id="level2"  src="images/2.jpg"  style="display: none;"> 
+	<img id="level3"  src="images/3.jpg"  style="display: none;">
+	<div id="canvasContainer"> 
+		<canvas id="myCanvas" width="1000" height="700"></canvas>
+	</div>
+	<div class="buttons">
+		<input type="button" class="screen" id="dynamicSize" onclick="makeDynamic()" value="Fit to Screen">
+		<input type="button" class="screen" id="fixedSize" onclick="makeFixed()" value="Default Size">
+		<input type="button" class="startup" id="start" onclick="startGame(0,2,1)" value="Start Game">
+		<input type="button" class="sounds" id="muteMusic" onclick="toggleMusic()" value="Toggle Music">
+		<input type="button" class="sounds" id="muteSFX" onclick="toggleSFX()" value="Toggle SFX">
+	</div>
+	<script>
 	/* TO DO:
 		- Show ball before launch
 		- Stop double pill drop
@@ -60,13 +59,15 @@
 		- Add power-downs
 			- Paddle Frozen
 	*/
-	
-	var canvas = document.getElementById("myCanvas"),
-		ctx = canvas.getContext("2d"),
+	var windowWidth,
+		windowHeight,
+		fixedCanvas = true,
+		canvas,
+		ctx,
 		fps = 60,
 		paddleHeight = 15,
 		paddleWidth = 150,
-		paddleX = (canvas.width-paddleWidth)/2,
+		paddleX,
 		paddleImg = document.getElementById("paddle"),
 		rightPressed = false,
 		leftPressed = false,
@@ -98,15 +99,15 @@
 		song_background2 = new Audio('sounds/Arkanoid_Black_Block_OC_ReMix.mp3'),
 		song_playlist = [song_background0,song_background1,song_background2],
 		musicOn = true,
-		sfxOn=true,
+		sfxOn = true,
 		current_song = 0,
 		brickWidth = 75,
 		brickHeight = 30,
 		brickRowCount = 3,
 		brickPadding = 15,
 		brickOffsetTop = 60,
-		brickOffsetLeft = 30,
-		brickColumnCount = Math.floor(canvas.width/(brickWidth+brickPadding)),
+		brickOffsetLeft = 15,
+		brickColumnCount = 11,
 		brickCount = 0,
 		level = 1,
 		timer = 0;
@@ -321,7 +322,8 @@
 			for(r=0; r<brickRowCount; r++) {
 				var hasItem = 99;
 				var lives = 1;
-				var brickType = Math.floor(Math.random() * 4);
+				//var brickType = Math.floor(Math.random() * 4);
+				var brickType = 0;
 				if(brickType == 0){
 					brickCount++;
 					hasItem = Math.floor(Math.random() * 12);
@@ -351,35 +353,38 @@
 		}
 	}
 	
-	function hitBrick(ball) {
+	function hitBrick(brick){
+		if(brick.type == 0 || brick.type == 2){
+			brick.alive--;
+			sound_hitBrick.play();
+			score += 1;
+		}
+		if(brick.type == 1){
+			brick.alive--;
+			sound_hitBrick2.play();
+			score += 1;
+		}
+		if(brick.type == 3){
+			sound_hitBrick3.play();
+		}
+		if(brick.item == 0){
+			addBall(false,brick.x,brick.y);
+		}
+		if(brick.item == 1){
+			var pillType = Math.floor(Math.random() * 5);
+			addPill(brick.x,brick.y,pillType);
+		}
+		if(score == brickCount){
+			stopGame(2);
+		}
+	}
+	function checkHitBrick(ball) {
 		for(c=0; c<brickColumnCount; c++) {
 			for(r=0; r<brickRowCount; r++) {
 				var brick = bricks[c][r];
 				if(brick.alive > 0) {
 					if(ball.x+ball.radius > brick.x && ball.x-ball.radius < brick.x+brickWidth && ball.y-ball.radius  < brick.y+brickHeight && ball.y+ball.radius > brick.y ) {
-						if(brick.type == 0 || brick.type == 2){
-							brick.alive--;
-							sound_hitBrick.play();
-							score += 1;
-						}
-						if(brick.type == 1){
-							brick.alive--;
-							sound_hitBrick2.play();
-							score += 1;
-						}
-						if(brick.type == 3){
-							sound_hitBrick3.play();
-						}
-						if(brick.item == 0){
-							addBall(false,brick.x,brick.y);
-						}
-						if(brick.item == 1){
-							var pillType = Math.floor(Math.random() * 5);
-							addPill(brick.x,brick.y,pillType);
-						}
-						if(score == brickCount){
-							stopGame(2);
-						}
+						hitBrick(brick);
 						ball.speedy = -ball.speedy;
 					}
 				}
@@ -426,6 +431,71 @@
 		ball.y += ball.speedy;
 	}
 	
+	function drawBackground(level){
+		ctx.drawImage(bg_playlist[level-1], 0,0,canvas.width,canvas.height);
+	}
+	function drawText() {
+		ctx.font = "20px Calibri";
+		ctx.fillStyle = "yellow";
+		ctx.fillText("Score: "+score, 8, 20);
+		ctx.fillText("Extra Lives: "+lives, 8, 50);
+		ctx.fillText("Level: "+level, (canvas.width)-150, 20);
+		ctx.font = "30px Calibri";
+		ctx.fillText("Breakout 2D", (canvas.width/2)-60, 30);
+	}
+	function makeFixed(){
+		fixedCanvas = true;
+		makeCanvas();
+	}
+	function makeDynamic(){
+		fixedCanvas = false;
+		makeCanvas();
+	}
+	
+	function makeCanvas(){
+		$("#myCanvas").remove();
+		if(fixedCanvas){
+			$("#canvasContainer").html('<canvas id="myCanvas" width="1000" height="700"></canvas>');
+		}
+		else{
+			windowWidth = $(window).width();
+			windowHeight = $(window).height();
+			$("#canvasContainer").html('<canvas id="myCanvas" width="'+(windowWidth-10)+'" height="'+(windowHeight-30)+'"></canvas>');
+		}
+		canvas = document.getElementById("myCanvas");
+		ctx = canvas.getContext("2d");
+		paddleX = (canvas.width-paddleWidth)/2;
+		brickRowCount = 3;
+		brickColumnCount = Math.floor(canvas.width/(brickWidth+brickPadding));
+		setBricks();
+		draw(true);
+		brickCount = 0;
+		drawText();
+	}
+	
+	function draw(active) {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		drawBackground(level);
+		drawPaddle();
+		drawBricks();
+		for (var i = 0; i < balls.length; i++){
+			var ball = balls[i];
+			drawBall(ball);
+			if(active){
+				drawText();
+				checkHitBrick(ball);
+				bounceOrMove(ball, i);
+			}
+		}
+		for (var i = 0; i < pills.length; i++){
+			var pill = pills[i];
+			drawPill(pill);
+			if(active){
+				gotPill(pill,i);
+			}
+		}
+		paddleMovements();
+	}
 	function toggleMusic(){
 		if(musicOn){
 			song_playlist[current_song].volume = 0;
@@ -450,46 +520,17 @@
 			sfxOn = true;
 		}
 	}
-	function drawBackground(level){
-		ctx.drawImage(bg_playlist[level-1], 0,0,canvas.width,canvas.height);
-	}
-	function drawText() {
-		ctx.font = "20px Calibri";
-		ctx.fillStyle = "yellow";
-		ctx.fillText("Score: "+score, 8, 20);
-		ctx.fillText("Lives: "+lives, 8, 50);
-		ctx.fillText("Breakout 2D", (canvas.width/2)-60, 20);
-		ctx.fillText("Level:"+level, (canvas.width)-150, 20);
-	}
-	
-	function draw(active) {
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		drawBackground(level);
-		drawPaddle();
-		drawBricks();
-		for (var i = 0; i < balls.length; i++){
-			var ball = balls[i];
-			drawBall(ball);
-			if(active){
-				drawText();
-				hitBrick(ball);
-				bounceOrMove(ball, i);
-			}
-		}
-		for (var i = 0; i < pills.length; i++){
-			var pill = pills[i];
-			drawPill(pill);
-			if(active){
-				gotPill(pill,i);
-			}
-		}
-		paddleMovements();
+	function stopSong(){
+		song_playlist[current_song].pause();
+		song_playlist[current_song].currentTime = 0;
 	}
 	
 	function startGame(startingScore, startingLives, startType){
 		score = startingScore;
 		lives = startingLives;
 		$("#start").remove();
+		$("#dynamicSize").remove();
+		$("#fixedSize").remove();
 		removeBalls();
 		removePills();
 		if(startType > 0){
@@ -500,22 +541,22 @@
 		song_playlist[current_song].volume = 0.75;
 		timer = setInterval(function() {draw(true)}, (1000/fps));
 	}
-	function stopSong(){
-		song_playlist[current_song].pause();
-		song_playlist[current_song].currentTime = 0;
-	}
 	function stopGame(outcome){
 		draw(false);
 		clearInterval(timer);
 		if(outcome == 0){
 			lives--;
+			ctx.font = "20px Calibri";
+			ctx.fillStyle = "yellow";
 			ctx.fillText("Score: "+score, 8, 20);
 			ctx.fillText("Extra Lives: "+lives, 8, 50);
+			ctx.font = "30px Calibri";
 			ctx.fillText("Ball Out!", (canvas.width/2)-60, 30);
-			$(".buttons").html('<input type="button" id="start" onclick="startGame(score,lives,0)" value="Launch Ball">');
+			$(".buttons").append('<input type="button" class="startup" id="start" onclick="startGame(score,lives,0)" value="Launch Ball">');
 		}
 		else if(outcome == 1){
-			ctx.fillStyle = "yellow";
+			ctx.font = "20px Calibri";
+			ctx.fillStyle = "red";
 			ctx.fillText("Score: "+score, 8, 20);
 			ctx.fillText("Extra Lives: "+lives, 8, 50);	
 			ctx.font = "30px Calibri";
@@ -523,10 +564,12 @@
 			brickCount = 0;
 			score = 0;
 			level = 1;
-			lives = 3;
+			lives = 2;
 			stopSong();
 			current_song = 0;
-			$(".buttons").html('<input type="button" id="start" onclick="startGame(score,lives,level)" value="Start Game">');
+			$(".buttons").append('<input type="button" class="startup" id="start" onclick="startGame(score,lives,level)" value="Start Game">');
+			$(".buttons").append('<input type="button" class="screen" id="dynamicSize" onclick="makeDynamic()" value="Fit to Screen">');
+			$(".buttons").append('<input type="button" class="screen" id="fixedSize" onclick="makeFixed()" value="Default Size">');
 		}
 		else{
 			ctx.fillText("Level Cleared!!", (canvas.width/2)-60, 30);
@@ -535,18 +578,16 @@
 			sound_win.play();
 			stopSong();
 			current_song++;
-			$(".buttons").html('<input type="button" id="start" onclick="startGame(score,lives,level)" value="Start Next Level">');
+			$(".buttons").append('<input type="button"  class="startup" id="start" onclick="startGame(score,lives,level)" value="Start Next Level">');
 		}
 	}
 	//First load
-	setBricks();
-	brickCount = 0;
-	draw(true);
-	drawText();
+
+	makeCanvas();
 	song_playlist[current_song].addEventListener('ended', function() {
 		this.currentTime = 0;
 		this.play();
 	}, false);
-</script>
+	</script>
 </body>
 </html>
