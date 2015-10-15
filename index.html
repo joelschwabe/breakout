@@ -8,19 +8,18 @@
 		.buttons { 	
 					float:left;
 					position: fixed;
-					left: 30%;
+					left: 40%;
 					display: inline-block;
 				}
 
 		body{
 			font-weight:bold;
 			font-size:large;
-			background-color: #fff;
 			}
     </style>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 </head>
-<body>
+<body style="background-color:black;">
 	<img id="ball0"  src="images/ball0.png"  style="display: none;"> 
 	<img id="ball1"  src="images/ball1.png"  style="display: none;"> 
 	<img id="brick0"  src="images/brick0.jpg"  style="display: none;"> 
@@ -95,7 +94,8 @@
 		sound_hitBrick3 = new Audio('sounds/hitBrick3.mp3'),
 		sound_hitWall = new Audio('sounds/hitWall.mp3'),
 		sound_gotPill = new Audio('sounds/gotPill.mp3'),
-		sound_playlist = [sound_ballOut,sound_hitBrick,sound_hitBrick2,sound_hitBrick3,sound_hitWall,sound_gotPill],
+		sound_gameover = new Audio('sounds/gameover.mp3'),
+		sound_playlist = [sound_ballOut,sound_hitBrick,sound_hitBrick2,sound_hitBrick3,sound_hitWall,sound_gotPill,sound_gameover],
 		song_background0 = new Audio('sounds/Arkanoid_1999_(2000_Mix)_OC_ReMix.mp3'),
 		song_background1 = new Audio('sounds/Arkanoid_Navel_Lint_Dub_OC_ReMix.mp3'),
 		song_background2 = new Audio('sounds/Arkanoid_Black_Block_OC_ReMix.mp3'),
@@ -111,7 +111,7 @@
 		brickOffsetLeft = 15,
 		brickColumnCount = 11,
 		brickCount = 0,
-		level = 0,
+		level = 1,
 		timer = 0;
 		
 	document.addEventListener("keydown", keyDownHandler, false);
@@ -152,7 +152,7 @@
 		}
 		else{
 			if(paddleAccel > 1){
-				paddleAccel--;
+				paddleAccel -= 3;
 			}
 			accelLeft = false;
 			accelRight = false;
@@ -188,7 +188,7 @@
 		else{
 			xloc = x;
 			yloc = y;
-			xspeed = Math.floor(Math.random() * 5);
+			xspeed = Math.floor(Math.random() * 6);
 			xspeed *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
 			yspeed = 6;
 			color = document.getElementById("ball0"),
@@ -200,10 +200,11 @@
 	function drawBall(ball) {
 		ctx.beginPath();
 		ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
-		ctx.fillStyle = 'white';
+		//ctx.fillStyle = 'white';
+		ctx.fillStyle = 'hsl(170, 100%, 50%)';
 		ctx.fill();
 		ctx.closePath();
-		ctx.drawImage(ball.color, ball.x-ball.radius,ball.y-ball.radius,ball.radius*2, ball.radius*2);
+		//ctx.drawImage(ball.color, ball.x-ball.radius,ball.y-ball.radius,ball.radius*2, ball.radius*2);
 	}
 	function removeBalls(){
 		balls = [];
@@ -444,7 +445,7 @@
 			ball.speedy  = -ball.speedy ;
 		} 
 		else if(ball.y + ball.speedy > canvas.height-ball.radius) {
-			if(ball.x > paddleX && ball.x < paddleX + paddleWidth + ball.radius) {
+			if(ball.x+ball.radius > paddleX && ball.x < paddleX + paddleWidth + ball.radius) {
 				if(ball.y = ball.y-paddleHeight){
 					ball.speedy  = -ball.speedy ;
 					sound_hitWall.play();
@@ -487,10 +488,12 @@
 	}
 	function makeFixed(){
 		fixedCanvas = true;
+		level = 1;
 		makeCanvas();
 	}
 	function makeDynamic(){
 		fixedCanvas = false;
+		level = 0;
 		makeCanvas();
 	}
 	
@@ -577,10 +580,10 @@
 		removePills();
 		if(startType > -1){
 			setBricks(startType);
+			song_playlist[current_song].play();
+			song_playlist[current_song].volume = 0.75;
 		}
 		addBall(true,0,0);
-		song_playlist[current_song].play();
-		song_playlist[current_song].volume = 0.75;
 		timer = setInterval(function() {draw(true)}, (1000/fps));
 	}
 	function stopGame(outcome){
@@ -609,6 +612,7 @@
 			lives = 2;
 			stopSong();
 			current_song = 0;
+			sound_gameover.play();
 			$(".buttons").append('<input type="button" class="startup" id="start" onclick="startGame(score,lives,level)" value="Start Game">');
 			$(".buttons").append('<input type="button" class="screen" id="dynamicSize" onclick="makeDynamic()" value="Fit to Screen">');
 			$(".buttons").append('<input type="button" class="screen" id="fixedSize" onclick="makeFixed()" value="Default Size">');
