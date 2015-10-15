@@ -47,18 +47,19 @@ var	bg_level1 = document.getElementById("level1"),
 	tunnel = [],
 	tunnelX = cwide/2,
 	tunnelY = chigh/2,
-	minRadius = 25,
-	maxRadius = chigh,
-	circleSpacing = 10,
+	minRadius = 30,
+	maxRadius = cwide,
+	circleSpacing = 30,
 	stackOfCircles = 0,
 	image1 =  document.getElementById("level1"),
 	image2 =  document.getElementById("level2"),
 	currentImage = image1,
 	maxCircles = 50,
-	pictureTrigger = 100,
-	fps = 20,
-	colorVar = 1,
+	pictureTrigger = 200,
+	fps = 30,
+	colorVar = 1, 
 	startColor = Math.floor(Math.random() * 300),
+	ogStartColor =startColor,
 	color = "hsl(" + startColor + ", 100%,50%)";
 
 	function switchLevel(){
@@ -118,7 +119,9 @@ var	bg_level1 = document.getElementById("level1"),
 			tunnel.splice(0,1);
 		}
 		if(stackOfCircles > pictureTrigger){
-			tunnel.splice((tunnel.length-1),1);
+			if(tunnel.length > 1){
+				tunnel.splice((tunnel.length-1),1);
+			}
 		}
 		else{
 			var newCircle = new circle(tunnelX,tunnelY,minRadius,color);
@@ -128,8 +131,8 @@ var	bg_level1 = document.getElementById("level1"),
 		for(var i =0; i< tunnel.length; i++){
 			var thisCircle = tunnel[i];
 			//var nextCircle = tunnel[i+1];
-			if(startColor+colorVar > 360){
-				startColor = 0;
+			if(startColor+colorVar > ogStartColor+60){
+				startColor = ogStartColor;
 			}else{
 				startColor +=colorVar;
 			}
@@ -141,13 +144,14 @@ var	bg_level1 = document.getElementById("level1"),
 			}
 
 			thisCircle.radius += circleSpacing;
-			//tunnelX = thisCircle.x;
-			//tunnelY = thisCircle.y;
+
 			//var coords = getNewPoint(thisCircle.x,thisCircle.y);
 			//nextCircle.x = thisCircle.x;
 			//nextCircle.y = thisCircle.y;
 			//thisCircle.x = coords[0];
 			//thisCircle.y = coords[1];
+			//tunnelX = thisCircle.x;
+			//tunnelY = thisCircle.y;
 			console.log(stackOfCircles+":"+pictureTrigger);
 		}
 		if(tunnel.length == 0){
