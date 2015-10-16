@@ -125,12 +125,14 @@
 		stackOfCircles = 0,
 		currentImage = bg_playlist[0],
 		maxCircles = 50,
-		pictureTrigger = 100,
+		pictureTrigger = 1200,
 		colorVar = 1, 
-		startColor = ~~(Math.random() * 360),
-		ogStartColor =startColor,
-		color1 = "hsl(" + startColor + ", 100%,50%)",
-		color2 = "hsl(" + ~~(startColor/2) + ", 100%,50%)";
+		startColor1 = ~~(Math.random() * 360),
+		startColor2 = ~~(Math.random() * 360),
+		ogStartColor =startColor1,
+		ogStartColor2 =startColor2,
+		color1 = "hsl(" + startColor1 + ", 100%,50%)",
+		color2 = "hsl(" + startColor2 + ", 100%,50%)";
 		
 	document.addEventListener("keydown", keyDownHandler, false);
 	document.addEventListener("keyup", keyUpHandler, false);
@@ -184,8 +186,8 @@
 			second = 1 - first;
 		first *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
 		second *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
-		newX = Math.floor(first * minRadius);
-		newY = Math.floor(second * minRadius);
+		newX = Math.floor(first * minRadius/2);
+		newY = Math.floor(second * minRadius/2);
 		if(newX+oldX < canvas.width-minRadius &&newX+oldX > 0){
 			newX += oldX;
 		}
@@ -201,26 +203,7 @@
 		var coord = [newX,newY];
 		return(coord);
 	}
-	function drawCircle(circle,image){ //image could be string: color_type or picture_name
-		if(image){
-			ctx.beginPath();
-			ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI*2);
-			ctx.fillStyle = ctx.createPattern(image, 'repeat');
-			ctx.fill();
-			ctx.closePath();
-		}
-		else{
-			ctx.beginPath();
-			ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI*2,false);
-			//var grd = ctx.createRadialGradient(tunnelX+stackOfCircles, tunnelY, ~~(circle.radius/3), tunnelX-stackOfCircles, tunnelY+stackOfCircles, circle.radius);
-			var grd = ctx.createRadialGradient(tunnelX, tunnelY, ~~(circle.radius/3), tunnelX, tunnelY, circle.radius);
-			grd.addColorStop(0, color2);
-			grd.addColorStop(1,color1);
-			ctx.fillStyle = grd;
-			ctx.fill();
-			ctx.closePath();
-		}
-	}
+
 	function ball(xloc,yloc,ballradius,xspeed,yspeed,shade,kind){
 		this.radius = ballradius;
 		this.x = xloc + (ballradius/2);
@@ -260,13 +243,12 @@
 		balls.push(newBall);
 	}
 	function drawBall(ball) {
-		ctx.beginPath();
-		ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
+		//ctx.beginPath();
+		//ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
 		//ctx.fillStyle = 'white';
-		ctx.fillStyle = 'hsl(170, 100%, 50%)';
-		ctx.fill();
-		ctx.closePath();
-		//ctx.drawImage(ball.color, ball.x-ball.radius,ball.y-ball.radius,ball.radius*2, ball.radius*2);
+		//ctx.fill();
+		//ctx.closePath();
+		ctx.drawImage(ball.color, ball.x-ball.radius,ball.y-ball.radius,ball.radius*2, ball.radius*2);
 	}
 	function removeBalls(){
 		balls = [];
@@ -583,6 +565,10 @@
 		draw(true);
 		brickCount = 0;
 		drawText();
+		song_playlist[current_song].addEventListener('ended', function() {
+			this.currentTime = 0;
+			this.play();
+		}, false);
 	}
 	
 	function draw(active) {
@@ -608,55 +594,71 @@
 		}
 		paddleMovements();
 	}
+	function drawCircle(circle,image){ //image could be string: color_type or picture_name
+		if(image){
+			ctx.beginPath();
+			ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI*2);
+			ctx.fillStyle = ctx.createPattern(image, 'repeat');
+			ctx.fill();
+			ctx.closePath();
+		}
+		else{
+			ctx.beginPath();
+			ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI*2,false);
+			///*var grd = ctx.createRadialGradient(tunnelX+stackOfCircles, tunnelY, ~~(circle.radius/3), tunnelX-stackOfCircles, tunnelY+stackOfCircles, circle.radius);
+			var grd = ctx.createRadialGradient(tunnelX, tunnelY, ~~(circle.radius/3), tunnelX, tunnelY, circle.radius);
+			grd.addColorStop(0, color2);
+			grd.addColorStop(1,color1);
+			ctx.fillStyle = grd;
+			//*/ctx.fillStyle = color1;
+			ctx.fill();
+			ctx.closePath();
+		}
+	}
 	function drawWarp(){
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		color1 = "hsl(" + startColor + ", 100%,50%)";
-		if(tunnel.length > 0){
-			if(tunnel[0].radius > maxRadius){
-				tunnel.splice(0,1);
-			}
-		}
+		var coords = getNewPoint(tunnelX,tunnelY);		
 		if(stackOfCircles > pictureTrigger){
-			if(tunnel.length > 0){
+			if(tunnel.length > 1){
 				tunnel.splice((tunnel.length-1),1);
 			}
 		}
 		else{
-			var newCircle = new ball(tunnelX,tunnelY,minRadius,0,0,color1,0);
+			var newCircle = new ball(tunnelX,tunnelY,minRadius,color1);
 			tunnel.push(newCircle);
 			stackOfCircles++;
 		}
-		var coords = getNewPoint(tunnelX,tunnelY);
 		for(var i =0; i< tunnel.length; i++){
 			var thisCircle = tunnel[i];
-			if( i > 0){
-				var nextCircle = tunnel[i+1];
-			}
-			if(startColor+colorVar > ogStartColor+60){
-				startColor = ogStartColor;
-			}else{
-				startColor +=colorVar;
-			}
 			if(stackOfCircles > pictureTrigger && i == (tunnel.length-1)){
-				drawCircle(thisCircle,bg_playlist[level-1]); 
-			}
-			else if(i !== (tunnel.length-1)){
-				drawCircle(thisCircle);
+				drawCircle(thisCircle,currentImage); 
 			}
 			else{
-				continue;
+				drawCircle(thisCircle);
 			}
 			thisCircle.radius += circleSpacing;
-			thisCircle.x = coords[0];
-			thisCircle.y = coords[1];
-			tunnelX = thisCircle.x;
-			tunnelY = thisCircle.y;
+			startColor1 += colorVar*2;
+			startColor2 += colorVar;
+			if(startColor1 > 360){
+				startColor1 = 0;
+			}
+			if(startColor2 > 360){
+				startColor2 = 0;
+			}
+			color1 = "hsl(" + startColor1 + ", 100%,50%)";
+			color2 = "hsl(" + startColor2 + ", 100%,50%)";			
 		}
 		if(tunnel.length == 0){
 			clearInterval(timer);
-			doneWarp = true;
-			ctx.drawImage(bg_playlist[level-1], 0,0,canvas.width,canvas.height);
+			ctx.drawImage(bg_playlist[level], 0,0,canvas.width,canvas.height);
 		}
+		if(tunnel[0].radius > maxRadius){
+			tunnel.splice(0,tunnel.length-1);
+		}
+		thisCircle.x = coords[0];
+		thisCircle.y = coords[1];
+		tunnelX = thisCircle.x;
+		tunnelY = thisCircle.y;
 	}
 	
 	function startGame(startingScore, startingLives, startType){
@@ -759,10 +761,6 @@
 	
 //First load
 	makeCanvas();
-	song_playlist[current_song].addEventListener('ended', function() {
-		this.currentTime = 0;
-		this.play();
-	}, false);
 	</script>
 </body>
 </html>
