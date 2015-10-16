@@ -57,8 +57,8 @@ var	bg_level1 = document.getElementById("level1"),
 	image2 =  document.getElementById("level2"),
 	currentImage = image1,
 	maxCircles = 50,
-	pictureTrigger = 200,
-	fps = 15,
+	pictureTrigger = 100,
+	fps = 30,
 	colorVar = 2, 
 	startColor = ~~(Math.random() * 361),
 	ogStartColor =startColor,
@@ -142,7 +142,7 @@ var	bg_level1 = document.getElementById("level1"),
 			stackOfCircles++;
 		}
 		var coords = getNewPoint(tunnelX,tunnelY);
-		for(var i =0; i< tunnel.length-2; i++){
+		for(var i =0; i< tunnel.length; i++){
 			var thisCircle = tunnel[i];
 			if( i > 0){
 				var nextCircle = tunnel[i+1];
@@ -166,6 +166,7 @@ var	bg_level1 = document.getElementById("level1"),
 		}
 		if(tunnel.length == 0){
 			clearInterval(timer);
+			ctx.drawImage(image1, 0,0,canvas.width,canvas.height);
 		}
 	}
 	function init(){
