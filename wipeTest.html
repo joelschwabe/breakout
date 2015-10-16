@@ -49,7 +49,7 @@ var	bg_level1 = document.getElementById("level1"),
 	tunnelY = chigh/2,
 	minRadius = 30,
 	maxRadius = cwide,
-	circleSpacing = 30,
+	circleSpacing = 5,
 	stackOfCircles = 0,
 	image1 =  document.getElementById("level1"),
 	image2 =  document.getElementById("level2"),
@@ -58,7 +58,7 @@ var	bg_level1 = document.getElementById("level1"),
 	pictureTrigger = 200,
 	fps = 30,
 	colorVar = 1, 
-	startColor = Math.floor(Math.random() * 300),
+	startColor = ~~(Math.random() * 360),
 	ogStartColor =startColor,
 	color = "hsl(" + startColor + ", 100%,50%)";
 
@@ -72,7 +72,7 @@ var	bg_level1 = document.getElementById("level1"),
 	}
 	function getNewPoint(oldX,oldY){
 		var newX,
-			newY
+			newY,
 			divide = Math.random(),
 			first = 1 - divide,
 			second = 1 - first;
@@ -81,11 +81,18 @@ var	bg_level1 = document.getElementById("level1"),
 		second *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
 		newX = Math.floor(first * minRadius);
 		newY = Math.floor(second * minRadius);
-		if(newX+oldX < canvas.width-minRadius &&newX+oldX > 0 && newY+newY < canvas.height-minRadius && newY+oldY > 0){
+		if(newX+oldX < canvas.width-minRadius &&newX+oldX > 0){
 			newX += oldX;
+		}
+		else{
+			newX -= oldX;
+		}
+		if(newY+newY < canvas.height-minRadius && newY+oldY > 0){
 			newY += oldY;
 		}
-
+		else{
+			newY -= oldY;
+		}
 		var coord = [newX,newY];
 		return(coord);
 	}
@@ -124,13 +131,21 @@ var	bg_level1 = document.getElementById("level1"),
 			}
 		}
 		else{
+			var lastCircle = tunnel[tunnel.length-1];
+			var coords = getNewPoint(lastCircle.x,lastCircle.y);
+			var x = coords[0];
+			var y = coords[1];
+			//var newCircle = new circle(x,y,minRadius,color);
 			var newCircle = new circle(tunnelX,tunnelY,minRadius,color);
 			tunnel.push(newCircle);
 			stackOfCircles++;
 		}
 		for(var i =0; i< tunnel.length; i++){
 			var thisCircle = tunnel[i];
-			//var nextCircle = tunnel[i+1];
+			//var lastCircle = tunnel[tunnel.length-i];
+			if( i > 0){
+				var nextCircle = tunnel[i+1];
+			}
 			if(startColor+colorVar > ogStartColor+60){
 				startColor = ogStartColor;
 			}else{
@@ -146,13 +161,13 @@ var	bg_level1 = document.getElementById("level1"),
 			thisCircle.radius += circleSpacing;
 
 			//var coords = getNewPoint(thisCircle.x,thisCircle.y);
-			//nextCircle.x = thisCircle.x;
-			//nextCircle.y = thisCircle.y;
+			//lastCircle.x = thisCircle.x;
+			//lastCircle.y = thisCircle.y;
 			//thisCircle.x = coords[0];
 			//thisCircle.y = coords[1];
 			//tunnelX = thisCircle.x;
 			//tunnelY = thisCircle.y;
-			console.log(stackOfCircles+":"+pictureTrigger);
+			//console.log(stackOfCircles+":"+pictureTrigger);
 		}
 		if(tunnel.length == 0){
 			clearInterval(timer);
