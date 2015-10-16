@@ -4,33 +4,35 @@
     <meta charset="utf-8" />
     <title>Level Transition Test</title>
     <style>
-    	canvas	{ background: #eee; display: block; margin: 0 auto; }
+    	canvas	{ 
+			background: #eee; 
+			display: block; 
+			margin: 0 auto; 
+		}
 		.buttons { 	
-					float:left;
-					position: fixed;
-					left: 40%;
-					display: inline-block;
-				}
-				#images{
-				display:none;
-				}
+			float:left;
+			position: fixed;
+			left: 40%;
+			display: inline-block;
+		}
+		#images{
+			display:none;
+		}
+		.slider{
+			position:absolute;
+		}
 
 		body{
 			font-weight:bold;
 			font-size:large;
-			background-color: #fff;
+			background-color1: #fff;
 			}
     </style>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 </head>
 <body>
-<div id="images">
-</div>
-	<div id="canvasContainer"> 
-	</div>
-	<div class="buttons">
-		<input type="button" class="trans" id="switchLevel" onclick="switchLevel()" value="Switch Level">
-	</div>
+<div id="images"></div>
+<div id="canvasContainer"> </div>
 <script>
 var windowWidth = $(window).width(),
 	windowHeight = $(window).height();
@@ -49,18 +51,19 @@ var	bg_level1 = document.getElementById("level1"),
 	tunnelY = chigh/2,
 	minRadius = 30,
 	maxRadius = cwide,
-	circleSpacing = 5,
+	circleSpacing = 25,
 	stackOfCircles = 0,
 	image1 =  document.getElementById("level1"),
 	image2 =  document.getElementById("level2"),
 	currentImage = image1,
 	maxCircles = 50,
 	pictureTrigger = 200,
-	fps = 30,
-	colorVar = 1, 
-	startColor = ~~(Math.random() * 360),
+	fps = 15,
+	colorVar = 2, 
+	startColor = ~~(Math.random() * 361),
 	ogStartColor =startColor,
-	color = "hsl(" + startColor + ", 100%,50%)";
+	color1 = "hsl(" + startColor + ", 100%,50%)",
+	color2 = "hsl(" + ~~(startColor/2) + ", 100%,50%)";
 
 	function switchLevel(){
 		if(currentImage == image1){
@@ -76,7 +79,6 @@ var	bg_level1 = document.getElementById("level1"),
 			divide = Math.random(),
 			first = 1 - divide,
 			second = 1 - first;
-			
 		first *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
 		second *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
 		newX = Math.floor(first * minRadius);
@@ -114,14 +116,18 @@ var	bg_level1 = document.getElementById("level1"),
 		else{
 			ctx.beginPath();
 			ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI*2,false);
-			ctx.fillStyle = circle.color;
+			//var grd = ctx.createRadialGradient(tunnelX+stackOfCircles, tunnelY, ~~(circle.radius/3), tunnelX-stackOfCircles, tunnelY+stackOfCircles, circle.radius);
+			var grd = ctx.createRadialGradient(tunnelX, tunnelY, ~~(circle.radius/3), tunnelX, tunnelY, circle.radius);
+			grd.addColorStop(0, color2);
+			grd.addColorStop(1,color1);
+			ctx.fillStyle = grd;
 			ctx.fill();
 			ctx.closePath();
 		}
 	}
 	function draw(){
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		color = "hsl(" + startColor + ", 100%,50%)";
+		color1 = "hsl(" + startColor + ", 100%,50%)";
 		if(tunnel[0].radius > maxRadius){
 			tunnel.splice(0,1);
 		}
@@ -131,18 +137,13 @@ var	bg_level1 = document.getElementById("level1"),
 			}
 		}
 		else{
-			var lastCircle = tunnel[tunnel.length-1];
-			var coords = getNewPoint(lastCircle.x,lastCircle.y);
-			var x = coords[0];
-			var y = coords[1];
-			//var newCircle = new circle(x,y,minRadius,color);
-			var newCircle = new circle(tunnelX,tunnelY,minRadius,color);
+			var newCircle = new circle(tunnelX,tunnelY,minRadius,color1);
 			tunnel.push(newCircle);
 			stackOfCircles++;
 		}
-		for(var i =0; i< tunnel.length; i++){
+		var coords = getNewPoint(tunnelX,tunnelY);
+		for(var i =0; i< tunnel.length-2; i++){
 			var thisCircle = tunnel[i];
-			//var lastCircle = tunnel[tunnel.length-i];
 			if( i > 0){
 				var nextCircle = tunnel[i+1];
 			}
@@ -157,24 +158,18 @@ var	bg_level1 = document.getElementById("level1"),
 			else{
 				drawCircle(thisCircle);
 			}
-
 			thisCircle.radius += circleSpacing;
-
-			//var coords = getNewPoint(thisCircle.x,thisCircle.y);
-			//lastCircle.x = thisCircle.x;
-			//lastCircle.y = thisCircle.y;
-			//thisCircle.x = coords[0];
-			//thisCircle.y = coords[1];
-			//tunnelX = thisCircle.x;
-			//tunnelY = thisCircle.y;
-			//console.log(stackOfCircles+":"+pictureTrigger);
+			thisCircle.x = coords[0];
+			thisCircle.y = coords[1];
+			tunnelX = thisCircle.x;
+			tunnelY = thisCircle.y;
 		}
 		if(tunnel.length == 0){
 			clearInterval(timer);
 		}
 	}
 	function init(){
-		var newCircle = new circle(tunnelX,tunnelY,minRadius,color);
+		var newCircle = new circle(tunnelX,tunnelY,minRadius,color1);
 		startColor +=colorVar;
 		tunnel.push(newCircle);
 		timer = setInterval(function() {draw()}, (1000/fps));
