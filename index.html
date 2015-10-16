@@ -4,7 +4,11 @@
     <meta charset="utf-8" />
     <title>Breakout 2D</title>
     <style>
-    	canvas	{ background: #eee; display: block; margin: 0 auto; }
+    	canvas	{ 
+					background: #eee; 
+					display: block; 
+					margin: 0 auto; 
+				}
 		.buttons { 	
 					float:left;
 					position: fixed;
@@ -15,6 +19,7 @@
 		body{
 			font-weight:bold;
 			font-size:large;
+			overflow:hidden;
 			}
     </style>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
@@ -45,7 +50,6 @@
 		<input type="button" class="startup" id="start" onclick="startGame(0,2,1)" value="Start Game">
 		<input type="button" class="sounds" id="muteMusic" onclick="toggleMusic()" value="Toggle Music">
 		<input type="button" class="sounds" id="muteSFX" onclick="toggleSFX()" value="Toggle SFX">
-		<input type="button" class="sounds" id="skipLevel" onclick="stopGame(2)" value="Start 2">
 	</div>
 	<script>
 	/* TO DO:
@@ -80,8 +84,8 @@
 		balls = [],
 		bricks = [],
 		pills = [],
-		pillWidth = 45;
-		pillHeight = 20;
+		pillWidth = 50;
+		pillHeight = 17;
 		effectTimers = [],
 		bg_level0 = document.getElementById("level0"),
 		bg_level1 = document.getElementById("level1"),
@@ -97,7 +101,7 @@
 		sound_gotPill = new Audio('sounds/gotPill.mp3'),
 		sound_gameover = new Audio('sounds/gameover.mp3'),
 		sound_warp = new Audio('sounds/warp.mp3'),
-		sound_playlist = [sound_ballOut,sound_hitBrick,sound_hitBrick2,sound_hitBrick3,sound_hitWall,sound_gotPill,sound_gameover],
+		sound_playlist = [sound_ballOut,sound_hitBrick,sound_hitBrick2,sound_hitBrick3,sound_hitWall,sound_gotPill,sound_gameover,sound_warp],
 		song_background0 = new Audio('sounds/Arkanoid_1999_(2000_Mix)_OC_ReMix.mp3'),
 		song_background1 = new Audio('sounds/Arkanoid_Navel_Lint_Dub_OC_ReMix.mp3'),
 		song_background2 = new Audio('sounds/Arkanoid_Black_Block_OC_ReMix.mp3'),
@@ -115,7 +119,7 @@
 		brickCount = 0,
 		level = 1,
 		timer = 0,
-		doneWarp = true;
+		doneWarp = true,
 		tunnel = [],
 		tunnelX = 0,
 		tunnelY = 0,
@@ -125,7 +129,7 @@
 		stackOfCircles = 0,
 		currentImage = bg_playlist[0],
 		maxCircles = 50,
-		pictureTrigger = 1200,
+		pictureTrigger = 100,
 		colorVar = 1, 
 		startColor1 = ~~(Math.random() * 360),
 		startColor2 = ~~(Math.random() * 360),
@@ -172,7 +176,7 @@
 		}
 		else{
 			if(paddleAccel > 1){
-				paddleAccel -= 3;
+				paddleAccel -= 2;
 			}
 			accelLeft = false;
 			accelRight = false;
@@ -188,7 +192,7 @@
 		second *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
 		newX = Math.floor(first * minRadius/2);
 		newY = Math.floor(second * minRadius/2);
-		if(newX+oldX < canvas.width-minRadius &&newX+oldX > 0){
+		if(newX+oldX < canvas.width-minRadius && newX+oldX > 0){
 			newX += oldX;
 		}
 		else{
@@ -223,7 +227,7 @@
 			type;
 		if(primary){
 			xloc = canvas.width/2;
-			yloc = canvas.height - 100;
+			yloc = canvas.height - 70;
 			xspeed = Math.floor(Math.random() * 8);
 			xspeed *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
 			yspeed = -8;
@@ -385,7 +389,7 @@
 					var hasItem = Math.floor(Math.random() * 12);
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r] = new brick(brickX,brickY,1,hasItem,0);
+					bricks[c][r] = new brick(brickX,brickY,1,hasItem,1);
 				}
 			}
 		}
@@ -397,7 +401,7 @@
 					var hasItem = Math.floor(Math.random() * 12);
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r] = new brick(brickX,brickY,1,hasItem,0);
+					bricks[c][r] = new brick(brickX,brickY,1,hasItem,2);
 				}
 			}
 		}
@@ -523,7 +527,7 @@
 	function drawBackground(level){
 		ctx.drawImage(bg_playlist[level], 0,0,canvas.width,canvas.height);
 	}
-	function drawText() {
+	function drawText(){
 		ctx.font = "20px Calibri";
 		ctx.fillStyle = "yellow";
 		ctx.fillText("Score: "+score, 8, 20);
@@ -570,7 +574,7 @@
 			this.play();
 		}, false);
 	}
-	
+	var drawNum = 0;
 	function draw(active) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		drawBackground(level);
@@ -593,6 +597,8 @@
 			}
 		}
 		paddleMovements();
+		drawNum++;
+		console.log("draw#:"+drawNum+"  timer:"+timer);
 	}
 	function drawCircle(circle,image){ //image could be string: color_type or picture_name
 		if(image){
@@ -621,6 +627,10 @@
 		if(stackOfCircles > pictureTrigger){
 			if(tunnel.length > 1){
 				tunnel.splice((tunnel.length-1),1);
+				if(tunnel.length == 1){
+					ctx.drawImage(bg_playlist[level], 0,0,canvas.width,canvas.height);
+					doneWarp = true;
+				}
 			}
 		}
 		else{
@@ -648,10 +658,6 @@
 			color1 = "hsl(" + startColor1 + ", 100%,50%)";
 			color2 = "hsl(" + startColor2 + ", 100%,50%)";			
 		}
-		if(tunnel.length == 0){
-			clearInterval(timer);
-			ctx.drawImage(bg_playlist[level], 0,0,canvas.width,canvas.height);
-		}
 		if(tunnel[0].radius > maxRadius){
 			tunnel.splice(0,tunnel.length-1);
 		}
@@ -659,32 +665,38 @@
 		thisCircle.y = coords[1];
 		tunnelX = thisCircle.x;
 		tunnelY = thisCircle.y;
-	}
-	
-	function startGame(startingScore, startingLives, startType){
-		score = startingScore;
-		lives = startingLives;
-		$("#start").remove();
-		$("#dynamicSize").remove();
-		$("#fixedSize").remove();
-		clearInterval(timer);
-		if(startType > 1){
-			sound_warp.play();
-			doneWarp = false;
-			timer = setInterval(function() {drawWarp()}, (200/fps));
+		if(doneWarp){
+			launchBall(level);
 		}
+		console.log("WarpFrame#:"+stackOfCircles + "  doneWarp:"+doneWarp+"  timer:"+timer);
+	}
+	function launchBall(startType){
+		clearInterval(timer);
 		if(startType > -1){
-			setBricks(startType);
+			setBricks(level);
 			song_playlist[current_song].play();
 			song_playlist[current_song].volume = 0.75;
 		}
 		removeBalls();
 		removePills();
 		addBall(true,0,0);
-		if(doneWarp){
-			timer = setInterval(function() {draw(true)}, (1000/fps));
-		}
+		timer = setInterval(function() {draw(true)}, (1000/fps));
 	}
+	function startGame(startingScore, startingLives, startType){
+		score = startingScore;
+		lives = startingLives;
+		$("#start").remove();
+		$("#dynamicSize").remove();
+		$("#fixedSize").remove();
+		if(startType > 1){
+			sound_warp.play();
+			if(!doneWarp){
+				timer = setInterval(function() {drawWarp()}, (1000/fps));
+			}
+		}
+		launchBall(startType);
+	}
+	
 	function stopGame(outcome){
 		draw(false);
 		clearInterval(timer);
@@ -726,6 +738,7 @@
 			sound_win.play();
 			stopSong();
 			current_song++;
+			doneWarp=false;
 			$(".buttons").append('<input type="button"  class="startup" id="start" onclick="startGame(score,lives,level)" value="Start Next Level">');
 		}
 	}
