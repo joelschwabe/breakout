@@ -129,7 +129,7 @@
 		stackOfCircles = 0,
 		currentImage = bg_playlist[0],
 		maxCircles = 50,
-		pictureTrigger = 100,
+		pictureTrigger = 700,
 		colorVar = 1, 
 		startColor1 = ~~(Math.random() * 360),
 		startColor2 = ~~(Math.random() * 360),
@@ -406,7 +406,7 @@
 			}
 		}
 		else{ //if called with no level or level 0
-			brickRowCount = Math.floor(canvas.height/(brickHeight+brickPadding) - 5);
+			//brickRowCount = Math.floor(canvas.height/(brickHeight+brickPadding) - 5);
 			for(c=0; c<brickColumnCount; c++) {
 				bricks[c] = [];
 				for(r=0; r<brickRowCount; r++) {
@@ -638,8 +638,15 @@
 			tunnel.push(newCircle);
 			stackOfCircles++;
 		}
+		ctx.rect(0, 0, canvas.width, canvas.height);
+		ctx.fillStyle = 'black';
+		ctx.fill();
+		ctx.stroke();
 		for(var i =0; i< tunnel.length; i++){
 			var thisCircle = tunnel[i];
+			//if(tunnel[0].radius < maxRadius){
+			//	ctx.drawImage(bg_playlist[level-1], 0,0,canvas.width,canvas.height);
+			//}
 			if(stackOfCircles > pictureTrigger && i == (tunnel.length-1)){
 				drawCircle(thisCircle,currentImage); 
 			}
@@ -668,6 +675,7 @@
 		if(doneWarp){
 			launchBall(level);
 		}
+		//ctx.clearRect(0, 0, canvas.width, canvas.height);
 		console.log("WarpFrame#:"+stackOfCircles + "  doneWarp:"+doneWarp+"  timer:"+timer);
 	}
 	function launchBall(startType){
@@ -694,7 +702,9 @@
 				timer = setInterval(function() {drawWarp()}, (1000/fps));
 			}
 		}
-		launchBall(startType);
+		else{
+			launchBall(startType);
+		}
 	}
 	
 	function stopGame(outcome){
