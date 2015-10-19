@@ -1,0 +1,18 @@
+CACHE MANIFEST
+# 2015-10-19 v1.0.0
+# need this line in ALL HTML tags: manifest="app.appcache" type="text/cache-manifest" 
+# Change version number to trigger updates to caching when updating any of the files below
+#These things need to be available offline
+images/0.jpg
+images/0.jpg
+images/0.jpg
+images/0.jpg
+images/0.jpg
+images/0.jpg
+index.html
+
+#These things are ONLY available ONLINE ( "*" forces online fetch for all resources when able)
+NETWORK:
+*
+#These are fallback URI to switch from an online resource to an offline one
+FALLBACK:
