@@ -342,10 +342,18 @@
 		pills = [];
 	}
 
-	function brick( xloc, yloc , isAlive, whichItem,brickType){
+	function brick( xloc, yloc ,whichItem,brickType){
 		this.x = xloc;
 		this.y = yloc;
-		this.alive = isAlive;
+		if(brickType < 3){
+			this.alive = 1;
+		}
+		else if(brickType == 3){
+			this.alive = 2;
+		}
+		else{
+			this.alive = 99;
+		}
 		this.item = whichItem;
 		this.type = brickType;
 		switch(brickType){
@@ -368,7 +376,6 @@
 	}
 	function setBricks(levelSet){
 		if(levelSet == 1){
-			brickRowCount = 1;
 			for(c=0; c<brickColumnCount; c++) {
 				bricks[c] = [];
 				for(r=0; r<brickRowCount; r++) {
@@ -376,19 +383,20 @@
 					var hasItem = Math.floor(Math.random() * 12);
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r] = new brick(brickX,brickY,1,hasItem,0);
+					bricks[c][r] = new brick(brickX,brickY,hasItem,0);
 				}
 			}
 		}
 		else if(levelSet == 2){
+			brickRowCount = 4;
 			for(c=0; c<brickColumnCount; c++) {
 				bricks[c] = [];
 				for(r=0; r<brickRowCount; r++) {
 					brickCount++;
-					var hasItem = Math.floor(Math.random() * 12);
+					var hasItem = Math.floor(Math.random() * 4);
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r] = new brick(brickX,brickY,1,hasItem,1);
+					bricks[c][r] = new brick(brickX,brickY,hasItem,1);
 				}
 			}
 		}
@@ -400,7 +408,7 @@
 					var hasItem = Math.floor(Math.random() * 12);
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r] = new brick(brickX,brickY,1,hasItem,2);
+					bricks[c][r] = new brick(brickX,brickY,hasItem,2);
 				}
 			}
 		}
@@ -425,7 +433,7 @@
 					}
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r] = new brick(brickX,brickY,lives,hasItem,brickType);
+					bricks[c][r] = new brick(brickX,brickY,hasItem,brickType);
 				}
 			}
 		}
@@ -564,7 +572,7 @@
 		brickRowCount = 3;
 		brickColumnCount = Math.floor(canvas.width/(brickWidth+brickPadding));
 		setBricks(level);
-		draw(true);
+		draw(false);
 		brickCount = 0;
 		drawText();
 		song_playlist[current_song].addEventListener('ended', function() {
@@ -572,7 +580,7 @@
 			this.play();
 		}, false);
 	}
-	var drawNum = 0;
+
 	function draw(active) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		drawBackground(level);
@@ -595,8 +603,6 @@
 			}
 		}
 		paddleMovements();
-		drawNum++;
-		console.log("draw#:"+drawNum+"  timer:"+timer);
 	}
 	function drawCircle(circle,image){ //image could be string: color_type or picture_name
 		if(image){
@@ -693,14 +699,15 @@
 	}
 	
 	function stopGame(outcome){
-		draw(false);
 		clearInterval(timer);
+		draw(false);
 		if(outcome == 0){
 			lives--;
 			ctx.font = "20px Calibri";
 			ctx.fillStyle = "yellow";
 			ctx.fillText("Score: "+score, 8, 20);
 			ctx.fillText("Extra Lives: "+lives, 8, 50);
+			ctx.fillText("Level: "+level, (canvas.width)-150, 20);
 			ctx.font = "30px Calibri";
 			ctx.fillText("Ball Out!", (canvas.width/2)-60, 30);
 			$(".buttons").append('<input type="button" class="startup" id="start" onclick="launchBall(-1)" value="Launch Ball">');
@@ -710,6 +717,7 @@
 			ctx.fillStyle = "red";
 			ctx.fillText("Score: "+score, 8, 20);
 			ctx.fillText("Extra Lives: "+lives, 8, 50);	
+			ctx.fillText("Level: "+level, (canvas.width)-150, 20);
 			ctx.font = "30px Calibri";
 			ctx.fillText("Game Over!", (canvas.width/2)-60, 30);
 			brickCount = 0;
