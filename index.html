@@ -47,7 +47,7 @@
 	<div class="buttons">
 		<input type="button" class="screen" id="dynamicSize" onclick="makeDynamic()" value="Fit to Screen">
 		<input type="button" class="screen" id="fixedSize" onclick="makeFixed()" value="Default Size">
-		<input type="button" class="startup" id="start" onclick="startGame(0,2,1)" value="Start Game">
+		<input type="button" class="startup" id="start" onclick="launchBall(1)" value="Start Game">
 		<input type="button" class="sounds" id="muteMusic" onclick="toggleMusic()" value="Toggle Music">
 		<input type="button" class="sounds" id="muteSFX" onclick="toggleSFX()" value="Toggle SFX">
 	</div>
@@ -123,14 +123,13 @@
 		tunnel = [],
 		tunnelX = 0,
 		tunnelY = 0,
-		minRadius = 30,
+		minRadius = 20,
 		maxRadius = 0,
-		circleSpacing = 40,
+		circleSpacing = 15,
 		stackOfCircles = 0,
 		currentImage = bg_playlist[0],
-		maxCircles = 50,
-		pictureTrigger = 700,
-		colorVar = 1, 
+		pictureTrigger = 200,
+		colorVar = 8, 
 		startColor1 = ~~(Math.random() * 360),
 		startColor2 = ~~(Math.random() * 360),
 		ogStartColor =startColor1,
@@ -190,8 +189,8 @@
 			second = 1 - first;
 		first *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
 		second *= Math.floor(Math.random()*2) == 1 ? 1 : -1;
-		newX = Math.floor(first * minRadius/2);
-		newY = Math.floor(second * minRadius/2);
+		newX = Math.floor(first * minRadius);
+		newY = Math.floor(second * minRadius);
 		if(newX+oldX < canvas.width-minRadius && newX+oldX > 0){
 			newX += oldX;
 		}
@@ -207,7 +206,12 @@
 		var coord = [newX,newY];
 		return(coord);
 	}
-
+	function circle(xloc,yloc,radius,col){
+		this.radius = radius;
+		this.x = xloc;
+		this.y = yloc;
+		this.color = col;
+	}
 	function ball(xloc,yloc,ballradius,xspeed,yspeed,shade,kind){
 		this.radius = ballradius;
 		this.x = xloc + (ballradius/2);
@@ -247,11 +251,6 @@
 		balls.push(newBall);
 	}
 	function drawBall(ball) {
-		//ctx.beginPath();
-		//ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
-		//ctx.fillStyle = 'white';
-		//ctx.fill();
-		//ctx.closePath();
 		ctx.drawImage(ball.color, ball.x-ball.radius,ball.y-ball.radius,ball.radius*2, ball.radius*2);
 	}
 	function removeBalls(){
@@ -369,7 +368,7 @@
 	}
 	function setBricks(levelSet){
 		if(levelSet == 1){
-			brickRowCount = 3;
+			brickRowCount = 1;
 			for(c=0; c<brickColumnCount; c++) {
 				bricks[c] = [];
 				for(r=0; r<brickRowCount; r++) {
@@ -406,7 +405,6 @@
 			}
 		}
 		else{ //if called with no level or level 0
-			//brickRowCount = Math.floor(canvas.height/(brickHeight+brickPadding) - 5);
 			for(c=0; c<brickColumnCount; c++) {
 				bricks[c] = [];
 				for(r=0; r<brickRowCount; r++) {
@@ -562,7 +560,7 @@
 		paddleX = (canvas.width-paddleWidth)/2;
 		tunnelX = canvas.width/2;
 		tunnelY = canvas.height/2;
-		maxRadius = canvas.width;
+		maxRadius = canvas.width+200;
 		brickRowCount = 3;
 		brickColumnCount = Math.floor(canvas.width/(brickWidth+brickPadding));
 		setBricks(level);
@@ -611,12 +609,11 @@
 		else{
 			ctx.beginPath();
 			ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI*2,false);
-			///*var grd = ctx.createRadialGradient(tunnelX+stackOfCircles, tunnelY, ~~(circle.radius/3), tunnelX-stackOfCircles, tunnelY+stackOfCircles, circle.radius);
 			var grd = ctx.createRadialGradient(tunnelX, tunnelY, ~~(circle.radius/3), tunnelX, tunnelY, circle.radius);
 			grd.addColorStop(0, color2);
 			grd.addColorStop(1,color1);
 			ctx.fillStyle = grd;
-			//*/ctx.fillStyle = color1;
+			//ctx.fillStyle = color1;
 			ctx.fill();
 			ctx.closePath();
 		}
@@ -625,16 +622,15 @@
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		var coords = getNewPoint(tunnelX,tunnelY);		
 		if(stackOfCircles > pictureTrigger){
-			if(tunnel.length > 1){
-				tunnel.splice((tunnel.length-1),1);
-				if(tunnel.length == 1){
-					ctx.drawImage(bg_playlist[level], 0,0,canvas.width,canvas.height);
+			if(tunnel.length > 0){
+				if(tunnel.length <= 1){
 					doneWarp = true;
 				}
+				tunnel.splice((tunnel.length-1),1);
 			}
 		}
 		else{
-			var newCircle = new ball(tunnelX,tunnelY,minRadius,color1);
+			var newCircle = new circle(tunnelX,tunnelY,minRadius,color1);
 			tunnel.push(newCircle);
 			stackOfCircles++;
 		}
@@ -642,13 +638,11 @@
 		ctx.fillStyle = 'black';
 		ctx.fill();
 		ctx.stroke();
+		var thisCircle;
 		for(var i =0; i< tunnel.length; i++){
-			var thisCircle = tunnel[i];
-			//if(tunnel[0].radius < maxRadius){
-			//	ctx.drawImage(bg_playlist[level-1], 0,0,canvas.width,canvas.height);
-			//}
+			thisCircle = tunnel[i];
 			if(stackOfCircles > pictureTrigger && i == (tunnel.length-1)){
-				drawCircle(thisCircle,currentImage); 
+				drawCircle(thisCircle,bg_playlist[level]); 
 			}
 			else{
 				drawCircle(thisCircle);
@@ -663,48 +657,39 @@
 				startColor2 = 0;
 			}
 			color1 = "hsl(" + startColor1 + ", 100%,50%)";
-			color2 = "hsl(" + startColor2 + ", 100%,50%)";			
+			color2 = "hsl(" + startColor2 + ", 100%,50%)";		
+			thisCircle.x = coords[0];
+			thisCircle.y = coords[1];	
+			tunnelX = thisCircle.x;
+			tunnelY = thisCircle.y;			
 		}
-		if(tunnel[0].radius > maxRadius){
-			tunnel.splice(0,tunnel.length-1);
-		}
-		thisCircle.x = coords[0];
-		thisCircle.y = coords[1];
-		tunnelX = thisCircle.x;
-		tunnelY = thisCircle.y;
 		if(doneWarp){
-			launchBall(level);
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.drawImage(bg_playlist[level], 0,0,canvas.width,canvas.height);
+			clearInterval(timer);
+			stackOfCircles = 0;
+			$(".buttons").append('<input type="button"  class="startup" id="start" onclick="launchBall(level)" value="Start Next Level">');
 		}
-		//ctx.clearRect(0, 0, canvas.width, canvas.height);
-		console.log("WarpFrame#:"+stackOfCircles + "  doneWarp:"+doneWarp+"  timer:"+timer);
+		if(tunnel.length > 0){
+			if(tunnel[0].radius > maxRadius){
+				tunnel.splice(0,tunnel.length-1);
+			}
+		}
 	}
 	function launchBall(startType){
 		clearInterval(timer);
+		removeBalls();
+		removePills();
+		$("#start").remove();
+		$("#dynamicSize").remove();
+		$("#fixedSize").remove();
+		addBall(true,0,0);
 		if(startType > -1){
 			setBricks(level);
 			song_playlist[current_song].play();
 			song_playlist[current_song].volume = 0.75;
 		}
-		removeBalls();
-		removePills();
-		addBall(true,0,0);
 		timer = setInterval(function() {draw(true)}, (1000/fps));
-	}
-	function startGame(startingScore, startingLives, startType){
-		score = startingScore;
-		lives = startingLives;
-		$("#start").remove();
-		$("#dynamicSize").remove();
-		$("#fixedSize").remove();
-		if(startType > 1){
-			sound_warp.play();
-			if(!doneWarp){
-				timer = setInterval(function() {drawWarp()}, (1000/fps));
-			}
-		}
-		else{
-			launchBall(startType);
-		}
 	}
 	
 	function stopGame(outcome){
@@ -718,7 +703,7 @@
 			ctx.fillText("Extra Lives: "+lives, 8, 50);
 			ctx.font = "30px Calibri";
 			ctx.fillText("Ball Out!", (canvas.width/2)-60, 30);
-			$(".buttons").append('<input type="button" class="startup" id="start" onclick="startGame(score,lives,-1)" value="Launch Ball">');
+			$(".buttons").append('<input type="button" class="startup" id="start" onclick="launchBall(-1)" value="Launch Ball">');
 		}
 		else if(outcome == 1){
 			ctx.font = "20px Calibri";
@@ -734,7 +719,7 @@
 			stopSong();
 			current_song = 0;
 			sound_gameover.play();
-			$(".buttons").append('<input type="button" class="startup" id="start" onclick="startGame(score,lives,level)" value="Start Game">');
+			$(".buttons").append('<input type="button" class="startup" id="start" onclick="launchBall(level)" value="Start Game">');
 			$(".buttons").append('<input type="button" class="screen" id="dynamicSize" onclick="makeDynamic()" value="Fit to Screen">');
 			$(".buttons").append('<input type="button" class="screen" id="fixedSize" onclick="makeFixed()" value="Default Size">');
 		}
@@ -749,7 +734,8 @@
 			stopSong();
 			current_song++;
 			doneWarp=false;
-			$(".buttons").append('<input type="button"  class="startup" id="start" onclick="startGame(score,lives,level)" value="Start Next Level">');
+			sound_warp.play();
+			timer = setInterval(function() {drawWarp()}, (2000/fps));
 		}
 	}
 

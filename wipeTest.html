@@ -24,7 +24,7 @@
     </style>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 </head>
-<body>
+<body style="background-color: #fff;">
 <div id="images">
 </div>
 	<div id="canvasContainer"> 
@@ -43,19 +43,18 @@ var	bg_level1 = document.getElementById("level1"),
 	cwide = canvas.width,
 	chigh = canvas.height,
 	tunnel = [],
-	minRadius = 15,
+	minRadius = 20,
 	maxRadius = cwide,
 	tunnelX = (cwide/2)-minRadius,
 	tunnelY = (chigh/2)-minRadius,
-	circleSpacing = 30,
+	circleSpacing = 15,
 	stackOfCircles = 0,
 	image1 =  document.getElementById("level1"),
 	image2 =  document.getElementById("level2"),
 	currentImage = image1,
-	maxCircles = 50,
-	pictureTrigger = 100,
+	pictureTrigger = 250,
 	fps = 30,
-	colorVar = 5, 
+	colorVar = 8, 
 	startColor1 = Math.floor(Math.abs(Math.sin(Math.random())) * 360),
 	startColor2 = Math.floor(Math.abs(Math.sin(Math.random())) * 360),
 	ogStartColor =startColor1,
@@ -91,8 +90,8 @@ var	bg_level1 = document.getElementById("level1"),
 	
 	function circle(xloc,yloc,ballradius,image){
 		this.radius = ballradius;
-		this.x = xloc + (ballradius/2);
-		this.y = yloc + (ballradius/2);
+		this.x = xloc;
+		this.y = yloc;
 		this.color = image;
 	}
 	function drawCircle(circle,image){ //image could be string: color_type or picture_name
@@ -129,12 +128,13 @@ var	bg_level1 = document.getElementById("level1"),
 			tunnel.push(newCircle);
 			stackOfCircles++;
 		}
+		ctx.rect(0, 0, canvas.width, canvas.height);
+		ctx.fillStyle = 'black';
+		ctx.fill();
+		ctx.stroke();
+		var thisCircle;
 		for(var i =0; i< tunnel.length; i++){
-			var thisCircle = tunnel[i];
-			if( i > 0){
-				var nextCircle = tunnel[i+1];
-			}
-	
+			thisCircle = tunnel[i];
 			if(stackOfCircles > pictureTrigger && i == (tunnel.length-1)){
 				drawCircle(thisCircle,currentImage); 
 			}
@@ -142,6 +142,7 @@ var	bg_level1 = document.getElementById("level1"),
 				drawCircle(thisCircle);
 			}
 			thisCircle.radius += circleSpacing;
+			console.log("Circle#:" + i + "  Radius:"+thisCircle.radius);
 			startColor1 += colorVar*2;
 			startColor2 += colorVar;
 			if(startColor1 > 360){
@@ -151,7 +152,10 @@ var	bg_level1 = document.getElementById("level1"),
 				startColor2 = 0;
 			}
 			color1 = "hsl(" + startColor1 + ", 100%,50%)";
-			color2 = "hsl(" + startColor2 + ", 100%,50%)";			
+			color2 = "hsl(" + startColor2 + ", 100%,50%)";		
+			thisCircle.x = coords[0];
+			thisCircle.y = coords[1];
+			console.log("thisCircle.x:" +thisCircle.x+ "  thisCircle.y" + thisCircle.y);
 		}
 		if(tunnel.length == 0){
 			clearInterval(timer);
@@ -160,16 +164,12 @@ var	bg_level1 = document.getElementById("level1"),
 		if(tunnel[0].radius > maxRadius){
 			tunnel.splice(0,tunnel.length-1);
 		}
-		thisCircle.x = coords[0];
-		thisCircle.y = coords[1];
+
 		tunnelX = thisCircle.x;
 		tunnelY = thisCircle.y;
 	}
 	
 	function init(){
-		var newCircle = new circle(tunnelX,tunnelY,minRadius,color1);
-		startColor1 +=colorVar;
-		tunnel.push(newCircle);
 		timer = setInterval(function() {draw()}, (1000/fps));
 	}
 	init();
