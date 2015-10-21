@@ -1,0 +1,40 @@
+CACHE MANIFEST
+# 2015-10-19 v1.0.0
+# need this line in ALL HTML tags: manifest="app.appcache" type="text/cache-manifest" 
+# Change version number to trigger updates to caching when updating any of the files below
+#These things need to be available offline
+images/0.jpg
+images/1.jpg
+images/2.jpg
+images/3.jpg
+images/ball0.jpg
+images/ball1.jpg
+images/paddle.jpg
+images/brick0.jpg
+images/brick1.jpg
+images/brick2.jpg
+images/brick3.jpg
+images/pill0.jpg
+images/pill1.jpg
+images/pill2.jpg
+images/pill3.jpg
+images/pill4.jpg
+sounds/ballOut.mp3
+sounds/gameover.mp3
+sounds/gotPill.mp3
+sounds/hitBrick.mp3
+sounds/hitBrick2.mp3
+sounds/hitBrick3.mp3
+sounds/hitWall.mp3
+sounds/warp.mp3
+sounds/win.mp3
+sounds/Arkanoid_1999_(2000_Mix)_OC_ReMix.mp3
+sounds/Arkanoid_Black_Block_OC_ReMix.mp3
+sounds/Arkanoid_Navel_Lint_Dub_OC_ReMix.mp3
+index.html
+
+#These things are ONLY available ONLINE ( "*" forces online fetch for all resources when able)
+NETWORK:
+*
+#These are fallback URI to switch from an online resource to an offline one
+FALLBACK:
