@@ -108,11 +108,11 @@
 		current_song = 0,
 		brickWidth = 75,
 		brickHeight = 30,
-		brickRowCount = 1,
 		brickPadding = 15,
 		brickOffsetTop = 60,
 		brickOffsetLeft = 15,
 		brickColumnCount = 11,
+		brickRowCount = 3,
 		brickCount = 0,
 		level = 1,
 		timer = 0,
@@ -359,7 +359,7 @@
 		pills = [];
 	}
 
-	function brick( xloc, yloc ,whichItem,brickType){
+	function brick( xloc, yloc ,brickType){
 		this.x = xloc;
 		this.y = yloc;
 		if(brickType < 2){
@@ -370,60 +370,78 @@
 		if(brickType == 2){
 			this.alive = 2;
 		}
-		this.item = whichItem;
+		if(brickType == 9){
+			this.alive = 0;
+		}
 		this.type = brickType;
 		switch(brickType){
 			case 0:
 				this.img =  document.getElementById("brick0");
+				this.item = Math.floor(Math.random() * 12);
+				brickCount++;
 				break;
 			case  1:
 				this.img =  document.getElementById("brick1");
+				this.item = Math.floor(Math.random() * 4);
+				brickCount++;
 				break;
 			case 2:
 				this.img =  document.getElementById("brick2");
+				this.item = Math.floor(Math.random() * 16);
+				brickCount += 2;
 				break;
 			case 3:
 				this.img =  document.getElementById("brick3");
 				break;
 			default:
 				this.img =  document.getElementById("brick0");
+				this.item = Math.floor(Math.random() * 12);
+				brickCount++;
 				break;
 		}
 	}
 	function setBricks(levelSet){
+		var type = 0;
 		if(levelSet == 1){
 			for(c=0; c<brickColumnCount; c++) {
 				bricks[c] = [];
 				for(r=0; r<brickRowCount; r++) {
-					brickCount++;
-					var hasItem = Math.floor(Math.random() * 12);
+					if(c % 4 == 0) {
+						type = 0;
+					}
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r] = new brick(brickX,brickY,hasItem,0);
+					bricks[c][r] = new brick(brickX,brickY,type);
+					type = 9;
 				}
 			}
 		}
 		else if(levelSet == 2){
+			brickRowCount = 4;
 			for(c=0; c<brickColumnCount; c++) {
 				bricks[c] = [];
 				for(r=0; r<brickRowCount; r++) {
-					brickCount++;
-					var hasItem = Math.floor(Math.random() * 4);
+					if(c == 5 || c == 0 || c == brickColumnCount-1) {
+						type = 1;
+					}
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r] = new brick(brickX,brickY,hasItem,1);
+					bricks[c][r] = new brick(brickX,brickY,type);
+					type = 0;
 				}
 			}
 		}
 		else if(levelSet == 3){
+			brickRowCount = 5;
 			for(c=0; c<brickColumnCount; c++) {
 				bricks[c] = [];
 				for(r=0; r<brickRowCount; r++) {
-					brickCount +=2 ;
-					var hasItem = Math.floor(Math.random() * 12);
+					if(c > 2 && c < brickColumnCount-2) {
+						type = 2;
+					}
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r] = new brick(brickX,brickY,hasItem,2);
+					bricks[c][r] = new brick(brickX,brickY,type);
 				}
 			}
 		}
@@ -431,24 +449,10 @@
 			for(c=0; c<brickColumnCount; c++) {
 				bricks[c] = [];
 				for(r=0; r<brickRowCount; r++) {
-					var hasItem = 99;
-					var lives = 1;
-					var brickType = Math.floor(Math.random() * 4);
-					if(brickType == 0){
-						brickCount++;
-						hasItem = Math.floor(Math.random() * 12);
-					}
-					if(brickType == 1){
-						brickCount++;
-						hasItem = Math.floor(Math.random() * 4);
-					}
-					if(brickType == 2){
-						brickCount += 2;
-						lives = 2;
-					}
+					type = Math.floor(Math.random() * 4);
 					var brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
 					var brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
-					bricks[c][r] = new brick(brickX,brickY,hasItem,brickType);
+					bricks[c][r] = new brick(brickX,brickY,type);
 				}
 			}
 		}
