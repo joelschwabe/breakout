@@ -145,6 +145,15 @@
 		else if(e.keyCode == 37) {
 			leftPressed = true;
 		}
+    else if(e.keyCode == 32){
+      var start = document.getElementById("start");
+      var restart = document.getElementById("restart");
+      if(start){
+        launchBall(level);
+      }else if(restart){
+        launchBall(-1);
+      }
+    }
 	}
 	function keyUpHandler(e) {
 		if(e.keyCode == 39) {
@@ -500,7 +509,11 @@
 			var pillType = Math.floor(Math.random() * 5);
 			addPill(brick.x,brick.y,pillType);
 		}
-		if(score == brickCount){
+    if(brick.alive < 1){
+      brickCount--;
+    }
+		//if(score == brickCount){
+    if(brickCount == 0){
 			stopGame(2);
 			tunnelX = brick.x;
 			tunnelY = brick.y;
@@ -707,8 +720,10 @@
 			ctx.font = "160px Calibri";
 			ctx.strokeStyle = color1;
 			ctx.lineWidth = 5;
+      sound_warp.pause();
+      sound_warp.currentTime=0;
 			ctx.strokeText("Level "+level, canvas.width/2-220,canvas.height/2);
-			$(".buttons").append('<input type="button"  class="startup" id="start" onclick="launchBall(level)" value="Start Level">');
+			$(".buttons").append('<input type="button"  class="startup" id="start" onclick="launchBall(level)" value="Start Level (Space)">');
 		}
 		if(tunnel.length > 0){
 			if(tunnel[0].radius > maxRadius){
@@ -746,7 +761,7 @@
 			ctx.strokeText("Level: "+level, (canvas.width)-150, 20);
 			ctx.font = "50px Calibri";
 			ctx.strokeText("Ball Out!", (canvas.width/2)-150, 45);
-			$(".buttons").append('<input type="button" class="startup" id="start" onclick="launchBall(-1)" value="Launch Ball">');
+			$(".buttons").append('<input type="button" class="startup" id="restart" onclick="launchBall(-1)" value="Launch Ball">');
 		}
 		else if(outcome == 1){
 			ctx.font = "20px Calibri";
@@ -761,6 +776,7 @@
 			score = 0;
 			level = 1;
 			lives = 2;
+      paddleWidth = 150;
 			stopSong();
 			current_song = 0;
 			sound_gameover.play();
@@ -775,11 +791,12 @@
 			}else{
 				level++;
 			}
-			paddleWidth = 150,
+			paddleWidth = 150;
 			sound_win.play();
 			stopSong();
 			current_song++;
 			doneWarp=false;
+      sound_warp.loop = true;
 			sound_warp.play();
 			timer = setInterval(function() {drawWarp()}, (2000/fps));
 		}

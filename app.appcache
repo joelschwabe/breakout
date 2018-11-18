@@ -1,6 +1,6 @@
 CACHE MANIFEST
-# 2015-10-19 v1.0.00
-# need this line in ALL HTML tags: manifest="app.appcache" type="text/cache-manifest" 
+# 2018-11-17 v1.0.000
+# need this line in ALL HTML tags: manifest="app.appcache" type="text/cache-manifest"
 # Change version number to trigger updates to caching when updating any of the files below
 #These things need to be available offline
 images/0.jpg
