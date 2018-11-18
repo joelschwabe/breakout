@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# 2015-10-19 v1.0.0
+# 2015-10-19 v1.0.00
 # need this line in ALL HTML tags: manifest="app.appcache" type="text/cache-manifest" 
 # Change version number to trigger updates to caching when updating any of the files below
 #These things need to be available offline
@@ -7,18 +7,18 @@ images/0.jpg
 images/1.jpg
 images/2.jpg
 images/3.jpg
-images/ball0.jpg
-images/ball1.jpg
+images/ball0.png
+images/ball1.png
 images/paddle.jpg
 images/brick0.jpg
 images/brick1.jpg
 images/brick2.jpg
 images/brick3.jpg
-images/pill0.jpg
-images/pill1.jpg
-images/pill2.jpg
-images/pill3.jpg
-images/pill4.jpg
+images/pill0.png
+images/pill1.png
+images/pill2.png
+images/pill3.png
+images/pill4.png
 sounds/ballOut.mp3
 sounds/gameover.mp3
 sounds/gotPill.mp3

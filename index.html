@@ -4,12 +4,12 @@
     <meta charset="utf-8" />
     <title>Breakout 2D</title>
     <style>
-    	canvas	{ 
-					background: #eee; 
-					display: block; 
-					margin: 0 auto; 
+    	canvas	{
+					background: #eee;
+					display: block;
+					margin: 0 auto;
 				}
-		.buttons { 	
+		.buttons {
 					float:left;
 					position: fixed;
 					left: 40%;
@@ -25,24 +25,24 @@
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 </head>
 <body style="background-color:black;">
-	<img id="level0"  src="images/0.jpg"  style="display: none;"> 
-	<img id="level1"  src="images/1.jpg"  style="display: none;"> 
-	<img id="level2"  src="images/2.jpg"  style="display: none;"> 
-	<img id="paddle"  src="images/paddle.jpg"  style="display: none;"> 
+	<img id="level0"  src="images/0.jpg"  style="display: none;">
+	<img id="level1"  src="images/1.jpg"  style="display: none;">
+	<img id="level2"  src="images/2.jpg"  style="display: none;">
+	<img id="paddle"  src="images/paddle.jpg"  style="display: none;">
 	<img id="level3"  src="images/3.jpg"  style="display: none;">
-	<img id="ball0"  src="images/ball0.png"  style="display: none;"> 
-	<img id="ball1"  src="images/ball1.png"  style="display: none;"> 
-	<img id="brick0"  src="images/brick0.jpg"  style="display: none;"> 
-	<img id="brick1"  src="images/brick1.jpg"  style="display: none;"> 
-	<img id="brick2"  src="images/brick2.jpg"  style="display: none;"> 
-	<img id="brick3"  src="images/brick3.jpg"  style="display: none;"> 
-	<img id="pill0"  src="images/pill0.png"  style="display: none;"> 
-	<img id="pill1"  src="images/pill1.png"  style="display: none;"> 
-	<img id="pill2"  src="images/pill2.png"  style="display: none;"> 
-	<img id="pill3"  src="images/pill3.png"  style="display: none;"> 
-	<img id="pill4"  src="images/pill4.png"  style="display: none;"> 
+	<img id="ball0"  src="images/ball0.png"  style="display: none;">
+	<img id="ball1"  src="images/ball1.png"  style="display: none;">
+	<img id="brick0"  src="images/brick0.jpg"  style="display: none;">
+	<img id="brick1"  src="images/brick1.jpg"  style="display: none;">
+	<img id="brick2"  src="images/brick2.jpg"  style="display: none;">
+	<img id="brick3"  src="images/brick3.jpg"  style="display: none;">
+	<img id="pill0"  src="images/pill0.png"  style="display: none;">
+	<img id="pill1"  src="images/pill1.png"  style="display: none;">
+	<img id="pill2"  src="images/pill2.png"  style="display: none;">
+	<img id="pill3"  src="images/pill3.png"  style="display: none;">
+	<img id="pill4"  src="images/pill4.png"  style="display: none;">
 
-	<div id="canvasContainer"> 
+	<div id="canvasContainer">
 		<canvas id="myCanvas" width="1000" height="700"></canvas>
 	</div>
 	<div class="buttons">
@@ -126,18 +126,18 @@
 		stackOfCircles = 0,
 		currentImage = bg_playlist[0],
 		pictureTrigger = 200,
-		colorVar = 8, 
+		colorVar = 8,
 		startColor1 = ~~(Math.random() * 360),
 		startColor2 = ~~(Math.random() * 360),
 		ogStartColor =startColor1,
 		ogStartColor2 =startColor2,
 		color1 = "hsl(" + startColor1 + ", 100%,50%)",
 		color2 = "hsl(" + startColor2 + ", 100%,50%)";
-		
+
 	document.addEventListener("keydown", keyDownHandler, false);
 	document.addEventListener("keyup", keyUpHandler, false);
 	//document.addEventListener("mousemove", mouseMoveHandler, false);
-	 
+
 	function keyDownHandler(e) {
 		if(e.keyCode == 39) {
 			rightPressed = true;
@@ -162,9 +162,9 @@
  		}
  	}
 	*/
-	
+
 	function drawPaddle() {
-	
+
 		ctx.beginPath();
 		ctx.rect(paddleX, canvas.height-paddleHeight-5, paddleWidth, paddleHeight);
 		ctx.lineWidth = 5;
@@ -228,6 +228,8 @@
 		this.radius = ballradius;
 		this.x = xloc + (ballradius/2);
 		this.y = yloc + (ballradius/2);
+    //this.x = xloc + (ballradius);
+    //this.y = yloc + (ballradius);
 		this.speedx = xspeed;
 		this.speedy = yspeed;
 		this.color = shade;
@@ -273,7 +275,7 @@
 	function removeBalls(){
 		balls = [];
 	}
-		
+
 	function pill(xloc,yloc,item){
 		this.x = xloc;
 		this.y = yloc;
@@ -313,7 +315,7 @@
 				if(pill.y = pill.y-paddleHeight){
 					pillEffect(pill.type);
 					sound_gotPill.play();
-				}	
+				}
 			}
 			pills.splice(pillId,1);
 		}
@@ -344,10 +346,10 @@
 				break;
 			case 2: //paddle width up
 				paddleWidth += 50;
-				break;				
+				break;
 			case 3: //paddle width down
 				paddleWidth -= 50;
-				break;	
+				break;
 			case 4: //life up
 				lives+=1;
 				break;
@@ -393,6 +395,8 @@
 			case 3:
 				this.img =  document.getElementById("brick3");
 				break;
+      case 9:
+        break;
 			default:
 				this.img =  document.getElementById("brick0");
 				this.item = Math.floor(Math.random() * 12);
@@ -403,6 +407,7 @@
 	function setBricks(levelSet){
 		var type = 0;
 		if(levelSet == 1){
+      brickCount = 0;
 			for(c=0; c<brickColumnCount; c++) {
 				bricks[c] = [];
 				for(r=0; r<brickRowCount; r++) {
@@ -457,7 +462,7 @@
 			}
 		}
 	}
-	
+
 	function drawBricks() {
 		for(c=0; c<brickColumnCount; c++) {
 			for(r=0; r<brickRowCount; r++) {
@@ -473,7 +478,7 @@
 			}
 		}
 	}
-	
+
 	function hitBrick(brick){
 		if(brick.type == 0 || brick.type == 2){
 			brick.alive--;
@@ -514,7 +519,7 @@
 			}
 		}
 	}
-	
+
 	function bounceOrMove(ball, whichBall){
 		if(ball.x + ball.speedx > canvas.width-ball.radius || ball.x  < ball.radius+2) {
 			sound_hitWall.play();
@@ -523,7 +528,7 @@
 		if(ball.y < ball.radius) {
 			sound_hitWall.play();
 			ball.speedy  = -ball.speedy ;
-		} 
+		}
 		else if(ball.y + ball.speedy > canvas.height-ball.radius) {
 			if(ball.x+ball.radius > paddleX && ball.x < paddleX + paddleWidth + ball.radius) {
 				if(ball.y = ball.y-paddleHeight){
@@ -553,7 +558,7 @@
 		ball.x += ball.speedx;
 		ball.y += ball.speedy;
 	}
-	
+
 	function drawBackground(level){
 		ctx.drawImage(bg_playlist[level], 0,0,canvas.width,canvas.height);
 	}
@@ -577,7 +582,7 @@
 		level = 0;
 		makeCanvas();
 	}
-	
+
 	function makeCanvas(level){
 		$("#myCanvas").remove();
 		if(fixedCanvas){
@@ -651,7 +656,7 @@
 	}
 	function drawWarp(){
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		var coords = getNewPoint(tunnelX,tunnelY);		
+		var coords = getNewPoint(tunnelX,tunnelY);
 		if(stackOfCircles > pictureTrigger){
 			if(tunnel.length > 0){
 				if(tunnel.length <= 1){
@@ -673,7 +678,7 @@
 		for(var i =0; i< tunnel.length; i++){
 			thisCircle = tunnel[i];
 			if(stackOfCircles > pictureTrigger && i == (tunnel.length-1)){
-				drawCircle(thisCircle,bg_playlist[level]); 
+				drawCircle(thisCircle,bg_playlist[level]);
 			}
 			else{
 				drawCircle(thisCircle);
@@ -688,11 +693,11 @@
 				startColor2 = 0;
 			}
 			color1 = "hsl(" + startColor1 + ", 100%,50%)";
-			color2 = "hsl(" + startColor2 + ", 100%,50%)";		
+			color2 = "hsl(" + startColor2 + ", 100%,50%)";
 			thisCircle.x = coords[0];
-			thisCircle.y = coords[1];	
+			thisCircle.y = coords[1];
 			tunnelX = thisCircle.x;
-			tunnelY = thisCircle.y;			
+			tunnelY = thisCircle.y;
 		}
 		if(doneWarp){
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -720,13 +725,14 @@
 		$("#fixedSize").remove();
 		addBall(true,0,0);
 		if(startType > -1){
+      brickCount = 0;
 			setBricks(level);
 			song_playlist[current_song].play();
 			song_playlist[current_song].volume = 0.75;
 		}
 		timer = setInterval(function() {draw(true)}, (1000/fps));
 	}
-	
+
 	function stopGame(outcome){
 		clearInterval(timer);
 		draw(false);
@@ -747,7 +753,7 @@
 			ctx.strokeStyle = "red";
 			ctx.lineWidth = 1;
 			ctx.strokeText("Score: "+score, 8, 20);
-			ctx.strokeText("Extra Lives: "+lives, 8, 50);	
+			ctx.strokeText("Extra Lives: "+lives, 8, 50);
 			ctx.strokeText("Level: "+level, (canvas.width)-150, 20);
 			ctx.font = "50px Calibri";
 			ctx.strokeText("Game Over!", (canvas.width/2)-150, 45);
@@ -807,7 +813,7 @@
 		song_playlist[current_song].pause();
 		song_playlist[current_song].currentTime = 0;
 	}
-	
+
 //First load
 	makeCanvas();
 	$(".buttons").append('<input type="button" class="startup" id="start" onclick="launchBall(1)" value="Start Game">');
